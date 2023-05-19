@@ -38,4 +38,7 @@ export class UserEntity extends AbstractEntity {
 
      @Column({ nullable: true })
      fcmToken?: string;
+
+     followerCount?: number
+     followingCount?: number
 }
