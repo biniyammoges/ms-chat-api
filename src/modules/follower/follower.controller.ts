@@ -1,9 +1,9 @@
-import { Controller, Get, Param, Patch, Post, Query, UseGuards } from '@nestjs/common';
-import { GetUser } from 'src/shared/get-user.decrator';
+import { Controller, Get, Param, Query, UseGuards } from '@nestjs/common';
+import { GetUser } from '../../shared';
 import { FollowerService } from './follower.service';
 import { JwtAuthGuard } from '../auth/guards/at.guard';
-import { PaginationDto } from 'src/shared/pagination.dto';
-import { PaginationEntity } from 'src/shared/pagination.entity';
+import { PaginationDto } from '../../shared';
+import { PaginationEntity } from '../../shared';
 import { FollowerEntity } from './entities/follower.entity';
 
 @Controller()
@@ -13,22 +13,22 @@ export class FollowerController {
 
      // returns followers of the following user
      @Get('followers/:username')
-     async getFollowers(@GetUser('username') username: string, @Query() filter: PaginationDto): Promise<PaginationEntity<FollowerEntity>> {
+     async getFollowers(@Param('username') username: string, @Query() filter: PaginationDto): Promise<PaginationEntity<FollowerEntity>> {
           return this.followerService.getFollowers(username, filter);
      }
 
      // return users where user with username is following
-     @Get('following/:username')
-     async getFollowing(@GetUser('username') username: string, @Query() filter: PaginationDto): Promise<PaginationEntity<FollowerEntity>> {
-          return this.followerService.getFollowings(username, filter);
+     @Get('followings/:username')
+     async getFollowing(@Param('username') username: string, @Query() filter: PaginationDto): Promise<PaginationEntity<FollowerEntity>> {
+          return this.followerService.getFollowers(username, filter, false);
      }
 
-     @Patch('/follow/:username')
+     @Get('/follow/:username')
      async followUser(@GetUser('id') followerId: string, @Param('username') username: string): Promise<FollowerEntity> {
           return this.followerService.followUser(followerId, username)
      }
 
-     @Post('/unfollow/:username')
+     @Get('/unfollow/:username')
      async unFollowUser(@GetUser('id') followerId: string, @Param('username') username: string): Promise<any> {
           return this.followerService.unfollowUser(followerId, username)
      }

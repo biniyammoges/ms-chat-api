@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { BadRequestException, Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { UserEntity } from './entities/user.entity';
@@ -14,10 +14,20 @@ export class UserService {
      ) { }
 
      async findUserById(id: string): Promise<UserDto> {
-          return this.userTransformer.entityToDto(await this.userRepo.findOneByOrFail({ id }))
+          const user = await this.userRepo.findOneBy({ id });
+          if (!user) {
+               throw new BadRequestException('User not found with provided id')
+          }
+
+          return this.userTransformer.entityToDto(user)
      }
 
      async findUserByUsername(username: string) {
-          return this.userTransformer.entityToDto(await this.userRepo.findOneByOrFail({ username }))
+          const user = await this.userRepo.findOneBy({ username });
+          if (!user) {
+               throw new BadRequestException('User not found with provided username')
+          }
+
+          return this.userTransformer.entityToDto(user);
      }
 }

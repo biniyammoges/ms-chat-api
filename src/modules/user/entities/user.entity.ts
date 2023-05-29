@@ -1,5 +1,6 @@
+import { FollowerEntity } from "../../follower/entities/follower.entity";
 import { AbstractEntity } from "../../../shared/base.entity";
-import { Column, Entity } from "typeorm";
+import { Column, Entity, OneToMany } from "typeorm";
 
 @Entity()
 export class UserEntity extends AbstractEntity {
@@ -38,6 +39,12 @@ export class UserEntity extends AbstractEntity {
 
      @Column({ nullable: true })
      fcmToken?: string;
+
+     @OneToMany((type) => FollowerEntity, follow => follow.followeeId, { onDelete: 'CASCADE' })
+     followers?: FollowerEntity
+
+     @OneToMany((type) => FollowerEntity, follow => follow.followerId, { onDelete: 'CASCADE' })
+     followeings?: FollowerEntity
 
      followerCount?: number
      followingCount?: number

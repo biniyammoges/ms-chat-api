@@ -7,6 +7,7 @@ import { TypeOrmFixtureService } from "./service/fixture.service";
 import { collect } from "typeorm-fixture-builder";
 import { fixtures } from "./fixtures";
 import { SignInDto } from "src/modules/auth/dtos/signin.dto";
+import { userFixtures } from "./fixtures/user.fixture";
 
 type httpMethods = 'get' | 'post' | 'put' | 'delete'
 
@@ -47,7 +48,7 @@ export class TestClient {
           this.nestApp.close()
      }
 
-     async login(loginDto: SignInDto, isRefresh = false) {
+     async login(loginDto: SignInDto = { emailOrUsername: userFixtures.user0.email, password: "12345678" }, isRefresh = false) {
           try {
                const tokens = await this.authService.signInLocal(loginDto);
                this.defaultHeaders = { ...this.defaultHeaders, authorization: `Bearer ${isRefresh ? tokens.refreshToken : tokens.accessToken}` }
@@ -61,6 +62,7 @@ export class TestClient {
           const typeormFixtureService = await this.nestApp.get(TypeOrmFixtureService);
           await typeormFixtureService.installFixtures(collect(fixtures));
      }
+
      clearHeaders() {
           this.defaultHeaders = {}
      }
