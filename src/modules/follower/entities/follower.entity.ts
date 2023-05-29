@@ -1,8 +1,9 @@
 import { UserEntity } from "../../user/entities/user.entity";
 import { AbstractEntity } from "../../../shared/base.entity";
-import { Column, Entity, JoinColumn, ManyToOne } from "typeorm";
+import { Column, Entity, Index, JoinColumn, ManyToOne } from "typeorm";
 
 @Entity()
+@Index(['followerId', 'followeeId'], { unique: true })
 export class FollowerEntity extends AbstractEntity {
      @Column()
      followerId: string;
@@ -12,9 +13,9 @@ export class FollowerEntity extends AbstractEntity {
      follower?: UserEntity
 
      @Column()
-     followingId: string;
+     followeeId: string;
 
      @ManyToOne(() => UserEntity)
-     @JoinColumn({ name: 'followingId' })
-     following?: UserEntity
+     @JoinColumn({ name: 'followeeId' })
+     followee?: UserEntity
 }
