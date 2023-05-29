@@ -23,4 +23,14 @@ export const userFixtures = {
           bio: "Full stack develper",
           phone: "+251965874548"
      }),
+     user2: fixture(UserEntity, {
+          id: "1f4cd8b4-37e5-4079-a132-dc5addaa9555",
+          firstName: 'test',
+          lastName: "user",
+          email: "test@gmail.com",
+          password: hashSync('12345678', 10),
+          username: "testuser",
+          bio: "Full stack Test User",
+          phone: "+251965874543"
+     }),
 }
