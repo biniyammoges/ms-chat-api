@@ -3,20 +3,13 @@ import { TestClient } from "./utils/client";
 import { userFixtures } from "./utils/fixtures/user.fixture";
 import { setupTestClient } from "./utils/setup";
 import { FollowerEntity } from "../src/modules/follower/entities/follower.entity";
+import { useClient, useTransaction } from "./utils/service/hooks";
 
 describe('Follower module (e2e)', () => {
      let client: TestClient;
 
-     beforeAll(async () => {
-          client = await setupTestClient()
-     });
-
-     afterEach(async () => {
-          client.clearHeaders();
-     })
-     afterAll(async () => {
-          await client.close()
-     })
+     useClient({ beforeAll: (cl) => (client = cl) })
+     useTransaction({ before: 'all', client: () => client })
 
      it('/followers/:username (GET) should return error with unknown username', async () => {
           await client.login();
@@ -67,7 +60,6 @@ describe('Follower module (e2e)', () => {
           await client.login({ emailOrUsername: userFixtures.user2.username, password: "12345678" });
           const username = userFixtures.user0.username
           const res = await client.requestApi(`/unfollow/${username}`);
-          console.log(res)
           expect(res.message).toBe(`You are not following ${userFixtures.user0.firstName} ${userFixtures.user0.lastName}`);
      });
 
