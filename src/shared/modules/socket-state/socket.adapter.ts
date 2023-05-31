@@ -31,6 +31,7 @@ export class SocketAdapter extends IoAdapter implements WebSocketAdapter {
 
                const user = await authService.getMe(userId);
                socket.data.user = user;
+               next()
           })
 
           return server;
@@ -48,5 +49,6 @@ export class SocketAdapter extends IoAdapter implements WebSocketAdapter {
           const { data: { user: { id: userId } } } = socket;
           this.socketStateService.remove(userId, socket)
           socket.removeAllListeners(SocketEvents.DISCONNECT)
+          callback()
      }
 }

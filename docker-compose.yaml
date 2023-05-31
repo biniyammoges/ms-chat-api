@@ -1,6 +1,25 @@
 version: '3.8'
 
 services:
+  #api service
+  api:
+    build:
+      context: .
+      target: development
+    networks:
+      - api-network
+    ports:
+      - 3000:3000
+    command: npm run start:dev
+    env_file:
+      - .env
+    depends_on:
+      - mysql
+      - redis
+    volumes:
+      - .:/app
+
+  #database service
   mysql:
     image: mysql:8.0
     container_name: mysql_db
@@ -14,6 +33,8 @@ services:
     volumes:
       - mysql:/var/lib/mysql
     restart: always
+
+  #phpmyadmin service
   phpmyadmin:
     image: phpmyadmin/phpmyadmin:latest
     restart: always
@@ -23,6 +44,15 @@ services:
       PMA_PASSWORD: password
     ports:
       - '8080:80'
+
+  #redis service
+  redis:
+    image: redis:5
+    networks:
+      - api-network
+
+networks:
+  api-network:
 
 volumes:
   mysql:
