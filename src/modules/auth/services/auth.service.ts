@@ -75,13 +75,22 @@ export class AuthService {
      }
 
      async getMe(userId: string): Promise<UserDto> {
-          return this.userTransformer.entityToDto(await this.em.findOne(UserEntity, { where: { id: userId } }))
+          const user = await this.em.findOne(UserEntity, { where: { id: userId } });
+          if (!user) {
+               throw new UnauthorizedException()
+          }
+
+          return this.userTransformer.entityToDto(user)
      }
 
      async refreshAccessToken(user: UserEntity): Promise<JwtResponse> {
           const tokens = await this.generateJwtToken({ email: user.email, sub: user.id });
           await this.updateRefreshToken(user.id, tokens.refreshToken);
           return tokens
+     }
+
+     async verifyAccessToken(token: string): Promise<JwtPaylaod> {
+          return this.jwtService.verifyAsync(token)
      }
 
      private async updateRefreshToken(id: string, refreshToken: string) {

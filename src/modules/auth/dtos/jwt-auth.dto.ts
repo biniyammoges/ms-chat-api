@@ -1,5 +1,5 @@
 export class JwtPaylaod {
-     email: string
+     email?: string
      sub: string
 }
 
