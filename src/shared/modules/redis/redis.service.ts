@@ -1,6 +1,7 @@
 import { Inject, Injectable } from "@nestjs/common";
 import { REDIS_PUBLISHER_TOKEN, REDIS_SUBSCRIBER_TOKEN } from "./redis.contants";
 import { RedisClient } from "./redis.provider";
+import { RedisEmitEventDto } from "../redis-emitter/dto/redis-emit.dto";
 
 export interface RedisSubscribeMessage {
      readonly message: string
@@ -15,7 +16,7 @@ export class RedisService {
           @Inject(REDIS_PUBLISHER_TOKEN)
           private readonly redisPublisher: RedisClient) { }
 
-     async subscribe<T extends RedisSubscribeMessage>(event: string): Promise<T> {
+     async subscribe<T extends RedisEmitEventDto>(event: string): Promise<T> {
           return new Promise((resolve, reject) => {
                this.redisSubscriber.subscribe(event)
                this.redisSubscriber.on('message', (channel, message) => {

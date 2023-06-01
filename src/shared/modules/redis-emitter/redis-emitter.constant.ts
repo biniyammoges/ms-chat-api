@@ -1,0 +1,2 @@
+export const REDIS_EMIT_TO_ONE = 'REDIS_EMIT_TO_ONE'
+export const REDIS_EMIT_TO_ALL = 'REDIS_EMIT_TO_ALL'
