@@ -8,6 +8,7 @@ import { APP_GUARD } from '@nestjs/core';
 import { JwtAuthGuard } from './modules/auth/guards/at.guard';
 import { AppController } from './app.controller';
 import { FollowerModule } from './modules/follower/follower.module';
+import { FileModule } from './modules/file/file.module';
 
 @Module({
   imports: [
@@ -20,7 +21,7 @@ import { FollowerModule } from './modules/follower/follower.module';
         const ds = await import('./typeorm.ds');
         return ds.ds
       },
-    }), AuthModule, UserModule, FollowerModule,],
+    }), AuthModule, UserModule, FollowerModule, FileModule],
   controllers: [AppController],
   providers: [{ provide: APP_GUARD, useValue: JwtAuthGuard }]
 })

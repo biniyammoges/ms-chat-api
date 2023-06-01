@@ -2,6 +2,7 @@ import * as path from "path";
 import { DataSource, DataSourceOptions } from "typeorm";
 import { UserEntity } from "./modules/user/entities/user.entity";
 import { FollowerEntity } from "./modules/follower/entities/follower.entity";
+import { FileEntity } from "./modules/file/file.entity";
 
 let isTsNode = false;
 // https://github.com/TypeStrong/ts-node/issues/846#issuecomment-631828160
@@ -13,7 +14,7 @@ if (process[Symbol.for('ts-node.register.instance')]) {
 
 const entities: DataSourceOptions['entities'] = [
      path.join(process.cwd(), '/dist/**/*.entity{.js, .ts}'),
-     ...(process.env.NODE_ENV === 'test' ? [UserEntity, FollowerEntity] : []),
+     ...(process.env.NODE_ENV === 'test' ? [UserEntity, FollowerEntity, FileEntity] : []),
      ...(isTsNode ? [path.join(process.cwd(), 'src/**/*.entity{.ts, .js}')] : [])
 ]
 

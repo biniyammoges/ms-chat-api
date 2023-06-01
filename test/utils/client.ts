@@ -15,6 +15,7 @@ interface RequestOpts<BodyT> {
      method?: httpMethods
      headers?: Record<string, any>;
      body?: BodyT;
+     uploads?: { field: string, path: string }[];
 }
 
 export class TestClient {
@@ -67,12 +68,18 @@ export class TestClient {
           this.defaultHeaders = {}
      }
 
-     async requestApi<BodyT = any, ResT = any>(endpoint: string, opts: RequestOpts<BodyT> = { method: 'get' }) {
+     async requestApi<BodyT = any, ResT = any>(endpoint: string, opts: RequestOpts<BodyT> = { method: 'get', }) {
           const req = this.testAgent[opts.method](endpoint).set({
                headers: { ...this.defaultHeaders, ...opts.headers },
                ...this.defaultHeaders,
                ...opts.headers
           })
+
+          if (opts.uploads && opts.uploads.length) {
+               for (const upload of opts.uploads) {
+                    req.attach(upload.field, upload.path)
+               }
+          }
 
           let res: request.Response;
 
