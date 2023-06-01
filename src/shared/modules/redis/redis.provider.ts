@@ -8,13 +8,21 @@ export type RedisClient = Redis.Redis
 export const redisProviders: Provider[] = [
      {
           useFactory: (): RedisClient => {
-               return new Redis.Redis({ host: "redis", port: 6379 })
+               return new Redis.Redis({
+                    host: "redis", port: 63,
+                    enableReadyCheck: false,
+                    maxRetriesPerRequest: null
+               })
           },
           provide: REDIS_SUBSCRIBER_TOKEN
      },
      {
           useFactory: (): RedisClient => {
-               return new Redis.Redis({ host: "redis", port: 6379 })
+               return new Redis.Redis({
+                    host: "redis", port: 6379,
+                    enableReadyCheck: false,
+                    maxRetriesPerRequest: null
+               })
           },
           provide: REDIS_PUBLISHER_TOKEN
      },
