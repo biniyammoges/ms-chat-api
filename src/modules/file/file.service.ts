@@ -19,7 +19,9 @@ export class FileService {
 
      private async uploadBuffer(buffer: Buffer): Promise<UploadApiResponse> {
           return new Promise((resolve, reject) => {
-               const uploadStream = cloudinary.uploader.upload_stream({ folder: "uploads" }, (err, res) => {
+               const uploadStream = cloudinary.uploader.upload_stream({
+                    folder: process.env.CLOUDINARY_FOLDER || 'uploads'
+               }, (err, res) => {
                     if (res) resolve(res)
                     else reject(err)
                })

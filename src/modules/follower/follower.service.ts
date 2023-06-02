@@ -12,12 +12,19 @@ export class FollowerService {
 
      private readonly logger = new Logger(FollowerService.name);
 
-     async getFollowers(username: string, { limit = 50, page = 1 }: PaginationDto, fetchFollowers = true): Promise<PaginationEntity<FollowerEntity>> {
+     /**
+      * 
+      * @param {string} username - used to fetch follower data
+      * @param {PaginationDto} filter - has limit and page properties for pagination
+      * @param {boolean} fetchFollowers  - used to fetch followers and following
+      * @returns {PaginationEntity<FollowerEntity>}
+      */
+     async getFollowers(username: string, filter?: PaginationDto, fetchFollowers = true): Promise<PaginationEntity<FollowerEntity>> {
           await this.userService.findUserByUsername(username)
-          const offset = (page - 1) * limit
 
           const followerQry = this.em.createQueryBuilder(FollowerEntity, 'f');
 
+          // TODO - optimize following query to return only requried fields from relations
           if (fetchFollowers) {
                followerQry.innerJoin('f.followee', 'followee')
                     .innerJoinAndSelect('f.follower', 'follower')
@@ -28,9 +35,12 @@ export class FollowerService {
                     .where('follower.username = :username', { username })
           }
 
+          if (filter.limit)
+               followerQry.limit(filter.limit);
+          if (filter.limit && filter.page)
+               followerQry.skip((filter.page - 1) * filter.limit)
+
           const [followers, total] = await followerQry
-               .limit(limit)
-               .skip(offset)
                .orderBy('f.createdAt', "DESC")
                .getManyAndCount();
 
