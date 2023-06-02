@@ -11,6 +11,8 @@ import { CommentEntity } from './entities/comment.entity';
 import { CommentLikeEntity } from './entities/comment-like.entity';
 
 import { PostIdDto, CreateCommentDto, CreatePostDto, CommentIdDto } from './dtos/';
+import { SavedPostEntity } from './entities/saved-post.entity';
+import { date } from 'joi';
 
 @Injectable()
 export class PostService {
@@ -54,9 +56,9 @@ export class PostService {
           return new PaginationEntity({ data: posts, total })
      }
 
-     async retrieveMyPosts(id: string, filter: PaginationDto = { page: 1, limit: 10 }) {
+     async retrieveMyPosts(myId: string, filter: PaginationDto = { page: 1, limit: 10 }) {
           const [posts, total] = await this.em.createQueryBuilder(PostEntity, 'p')
-               .where("p.creatorId = :id", { id })
+               .where("p.creatorId = :myId", { myId })
                .leftJoin("p.comments", "comments")
                .addSelect((subQuery) => {
                     return subQuery
@@ -79,6 +81,13 @@ export class PostService {
           return new PaginationEntity({ data: posts, total })
      }
 
+     /**
+      * 
+      * @param {PostIdDto} data - contains validated postId param
+      * @param {string} likerId - user's Id who is liking the comment
+      * @param {boolean} unlike - if unlike is true, it will unlike the post
+      * @returns {PostLikeEntity} - returns PostLikeEntity
+      */
      async likePost(data: PostIdDto, likerId: string, unlike = false) {
           const post = await this.em.findOne(PostEntity, { where: { id: data.postId } })
           if (!post) throw new BadRequestException()
@@ -100,6 +109,13 @@ export class PostService {
                return alreadyLiked.remove()
      }
 
+     /**
+      * 
+      * @param {CommentIdDto} data - contains commentId param
+      * @param {string} likerId - user's Id who is liking the comment
+      * @param {boolean} unlike - if unlike is true, it will unlike the comment
+      * @returns  - returns CommentLikeEnriry
+      */
      async likeComment(data: CommentIdDto, likerId: string, unlike = false) {
           const comment = await this.em.findOne(CommentLikeEntity, { where: { id: data.commentId } })
           if (!comment) throw new BadRequestException()
@@ -219,5 +235,37 @@ export class PostService {
                .getManyAndCount();
 
           return new PaginationEntity({ data: comments, total })
+     }
+
+     /**
+      * 
+      * @param {PostIdDto} postIdDto - contains commentId param
+      * @param {string} userId - user's Id who is liking the comment
+      * @param {boolean} unsave - 
+      * @returns  - returns CommentLikeEnriry
+      */
+     async savePost(postIdDto: PostIdDto, userId: string, unsave = false): Promise<SavedPostEntity> {
+          const post = await this.em.findOneBy(PostEntity, { id: postIdDto.postId });
+          if (!post)
+               throw new NotFoundException('Post Not Found')
+
+          const alreadySaved = await this.em.findOne(SavedPostEntity, {
+               where: { userId, postId: postIdDto.postId }
+          });
+
+          if (!unsave && alreadySaved)
+               throw new BadRequestException('You already saved the post')
+          // user didn't saved the post, so he can save now
+          else if (!unsave && !alreadySaved) {
+               return this.em.save(this.em.create(SavedPostEntity, { userId, ...postIdDto }))
+          }
+
+          if (unsave && !alreadySaved)
+               throw new BadRequestException("You have to save first inorder to unsave")
+          // user has already liked before so he can unsave now
+          else if (unsave && alreadySaved)
+               return alreadySaved.remove()
+
+          return this.em.save(this.em.create(SavedPostEntity, { userId, ...postIdDto }))
      }
 }

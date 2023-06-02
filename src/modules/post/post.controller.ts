@@ -7,6 +7,7 @@ import { GetUser, PaginationDto, PaginationEntity } from '../../shared';
 import { PostEntity } from './entities/post.entity';
 import { PostLikeEntity } from './entities/post-like.entity';
 import { CommentEntity } from './entities/comment.entity';
+import { SavePostStatusDto } from './dtos/save-post-status.dto';
 
 @Controller()
 @UseGuards(JwtAuthGuard)
@@ -31,6 +32,11 @@ export class PostController {
   @Get('post/:postId/like')
   async likePost(@GetUser('id') likerId: string, @Param() postIdDto: PostIdDto, @Query() likeStatusDto: LikeStatusDto) {
     return this.postService.likePost(postIdDto, likerId, !!likeStatusDto.unlike)
+  }
+
+  @Get('post/:postId/save')
+  async savePost(@GetUser('id') userId: string, @Param() postIdDto: PostIdDto, @Query() savePostStatusDto: SavePostStatusDto) {
+    return this.postService.savePost(postIdDto, userId, !!savePostStatusDto.unsave)
   }
 
   @Get('post/:postId/likes')
