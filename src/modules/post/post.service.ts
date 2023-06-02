@@ -32,6 +32,20 @@ export class PostService {
                .innerJoin("creator.followers", "followers")
                .where("followers.followerId = :fetchorId", { fetchorId })
                .orWhere("p.creatorId = :fetcherId", { fetchorId })
+               .leftJoin("p.comments", "comments")
+               .addSelect((subQuery) => {
+                    return subQuery
+                         .select("Count(comments.id)", "commentCount")
+                         .from(CommentEntity.name, "comments")
+                         .where("comments.postId = p.id")
+               }, "commentCount")
+               .leftJoin("p.likes", "likes")
+               .addSelect((subQuery) => {
+                    return subQuery
+                         .select("Count(likes.id)", "likeCount")
+                         .from(PostLikeEntity.name, "likes")
+                         .where("likes.postId = p.id")
+               }, "likeCount")
                .limit(filter.limit)
                .skip((filter.page - 1) * filter.limit)
                .orderBy("p.createdAt", "DESC")
@@ -42,7 +56,21 @@ export class PostService {
 
      async retrieveMyPosts(id: string, filter: PaginationDto = { page: 1, limit: 10 }) {
           const [posts, total] = await this.em.createQueryBuilder(PostEntity, 'p')
-               .orWhere("p.creatorId = :id", { id })
+               .where("p.creatorId = :id", { id })
+               .leftJoin("p.comments", "comments")
+               .addSelect((subQuery) => {
+                    return subQuery
+                         .select("Count(comments.id)", "commentCount")
+                         .from(CommentEntity.name, "comments")
+                         .where("comments.postId = p.id")
+               }, "commentCount")
+               .leftJoin("p.likes", "likes")
+               .addSelect((subQuery) => {
+                    return subQuery
+                         .select("Count(likes.id)", "likeCount")
+                         .from(PostLikeEntity.name, "likes")
+                         .where("likes.postId = p.id")
+               }, "likeCount")
                .limit(filter.limit)
                .skip((filter.page - 1) * filter.limit)
                .orderBy("p.createdAt", "DESC")
@@ -142,6 +170,20 @@ export class PostService {
                .where('comment.postId = :postId', { postId: data.postId })
                .innerJoinAndSelect('comment.commentor', 'commentor')
                .select(['commentor.id', 'commentor.firstName', 'comment.lastName'])
+               .leftJoin("comment.likes", "likes")
+               .addSelect(subQuery => {
+                    return subQuery
+                         .select("COUNT(likes.id)", "likeCount")
+                         .from(CommentLikeEntity.name, "commentLikes")
+                         .where("commentLikes.commentId = comment.id")
+               }, "likeCount")
+               .leftJoin("comment.replies", "replies")
+               .addSelect(subQuery => {
+                    return subQuery
+                         .select("COUNT(replies.id)", "replyCount")
+                         .from(CommentEntity.name, "commentReplies")
+                         .where("commentReplies.parentCommentId = comment.id")
+               }, "replyCount")
                .limit(filter.limit)
                .skip((filter.page - 1) * filter.limit)
                .getManyAndCount();
@@ -157,6 +199,21 @@ export class PostService {
                .where('comment.parentCommentId = :commentId', { commentId: data.commentId })
                .innerJoinAndSelect('comment.commentor', 'commentor')
                .select(['commentor.id', 'commentor.firstName', 'comment.lastName'])
+               .select(['commentor.id', 'commentor.firstName', 'comment.lastName'])
+               .leftJoin("comment.likes", "likes")
+               .addSelect(subQuery => {
+                    return subQuery
+                         .select("COUNT(likes.id)", "likeCount")
+                         .from(CommentLikeEntity.name, "commentLikes")
+                         .where("commentLikes.commentId = comment.id")
+               }, "likeCount")
+               .leftJoin("comment.replies", "replies")
+               .addSelect(subQuery => {
+                    return subQuery
+                         .select("COUNT(replies.id)", "replyCount")
+                         .from(CommentEntity.name, "commentReplies")
+                         .where("commentReplies.parentCommentId = comment.id")
+               }, "replyCount")
                .limit(filter.limit)
                .skip((filter.page - 1) * filter.limit)
                .getManyAndCount();

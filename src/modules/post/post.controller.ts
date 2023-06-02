@@ -38,6 +38,11 @@ export class PostController {
     return this.postService.retrievePostLikes(postIdDto, filter)
   }
 
+  @Get('post/:postId/comments')
+  async retrieveComments(@Param() postIdDto: PostIdDto, @Query() filter: PaginationDto): Promise<PaginationEntity<CommentEntity>> {
+    return this.postService.retrieveComments(postIdDto, filter)
+  }
+
   @Post('comment/create')
   async createComment(@GetUser('id') commentorId: string, @Body() commentDto: CreateCommentDto) {
     return this.postService.createComment(commentDto, commentorId)
@@ -46,11 +51,6 @@ export class PostController {
   @Get('comment/:commentId/like')
   async likeComment(@GetUser('id') likerId: string, @Body() commentIdDto: CommentIdDto, @Query() likeStatusDto: LikeStatusDto) {
     return this.postService.likeComment(commentIdDto, likerId, !!likeStatusDto.unlike)
-  }
-
-  @Get('post/:postId/comments')
-  async retrieveComments(@Param() postIdDto: PostIdDto, @Query() filter: PaginationDto): Promise<PaginationEntity<CommentEntity>> {
-    return this.postService.retrieveComments(postIdDto, filter)
   }
 
   @Get('comment/:commentId/retrieve')

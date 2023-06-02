@@ -29,5 +29,6 @@ export class PostEntity extends AbstractEntity {
      @OneToMany(() => CommentEntity, cm => cm.postId, { onDelete: "CASCADE" })
      comments: CommentEntity[]
 
-     likeCount: number
+     likeCount?: number
+     commentCount?: number
 }
