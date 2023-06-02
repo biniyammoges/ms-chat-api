@@ -6,9 +6,12 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { PostEntity } from './entities/post.entity';
 import { PostMediaEntity } from './entities/post-media.entity';
 import { FollowerModule } from '../follower/follower.module';
+import { PostLikeEntity } from './entities/post-like.entity';
+import { CommentEntity } from './entities/comment.entity';
+import { CommentLikeEntity } from './entities/comment-like.entity';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([PostEntity, PostMediaEntity]), FollowerModule],
+  imports: [TypeOrmModule.forFeature([PostEntity, PostMediaEntity, PostLikeEntity, CommentEntity, CommentLikeEntity]), FollowerModule],
   controllers: [PostController],
   providers: [PostService, PostGateway]
 })

@@ -1,5 +1,5 @@
 import { AbstractEntity } from "../../../shared";
-import { Column, Entity, JoinColumn, ManyToOne } from "typeorm";
+import { Column, Entity, JoinColumn, ManyToOne, OneToOne } from "typeorm";
 import { FileEntity } from "../../file/file.entity";
 import { PostEntity } from "./post.entity";
 
@@ -8,7 +8,7 @@ export class PostMediaEntity extends AbstractEntity {
      @Column()
      fileId: string;
 
-     @ManyToOne(() => FileEntity)
+     @OneToOne(() => FileEntity)
      @JoinColumn({ name: "fileId" })
      file?: FileEntity
 

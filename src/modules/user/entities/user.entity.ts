@@ -1,6 +1,7 @@
 import { FollowerEntity } from "../../follower/entities/follower.entity";
 import { AbstractEntity } from "../../../shared/base.entity";
 import { Column, Entity, OneToMany } from "typeorm";
+import { PostEntity } from "../../post/entities/post.entity";
 
 @Entity()
 export class UserEntity extends AbstractEntity {
@@ -45,6 +46,9 @@ export class UserEntity extends AbstractEntity {
 
      @OneToMany((type) => FollowerEntity, follow => follow.followerId, { onDelete: 'CASCADE' })
      followeings?: FollowerEntity
+
+     @OneToMany((type) => PostEntity, post => post.creatorId, { onDelete: "CASCADE" })
+     posts: PostEntity[]
 
      followerCount?: number
      followingCount?: number
