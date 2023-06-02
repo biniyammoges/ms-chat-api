@@ -1,11 +1,6 @@
-import { IsBoolean, IsOptional, IsUUID } from "class-validator";
+import { IsBoolean, IsOptional } from "class-validator";
 
-export class LikePostDto {
-     @IsUUID()
-     postId: string
-}
-
-export class LikePostStatusDto {
+export class LikeStatusDto {
      @IsOptional()
      @IsBoolean()
      unlike?: boolean

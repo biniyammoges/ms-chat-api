@@ -1,0 +1,5 @@
+export * from "./create-comment.dto"
+export * from "./create-post.dto"
+export * from "./like-post.dto"
+export * from "./comment-id.dto"
+export * from "./post-id.dto"
