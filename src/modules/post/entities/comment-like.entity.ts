@@ -1,4 +1,4 @@
-import { UserEntity } from "src/modules/user/entities/user.entity";
+import { UserEntity } from "../../user/entities/user.entity";
 import { AbstractEntity } from "../../../shared";
 import { Column, Entity, Index, JoinColumn, ManyToOne } from "typeorm";
 import { CommentEntity } from "./comment.entity";

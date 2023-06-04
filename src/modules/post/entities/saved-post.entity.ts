@@ -1,5 +1,5 @@
-import { UserEntity } from "src/modules/user/entities/user.entity";
-import { AbstractEntity } from "src/shared";
+import { UserEntity } from "../../user/entities/user.entity";
+import { AbstractEntity } from "../../../shared";
 import { Column, Entity, Index, JoinColumn, ManyToOne } from "typeorm";
 import { PostEntity } from "./post.entity";
 

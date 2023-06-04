@@ -12,7 +12,6 @@ import { CommentLikeEntity } from './entities/comment-like.entity';
 
 import { PostIdDto, CreateCommentDto, CreatePostDto, CommentIdDto } from './dtos/';
 import { SavedPostEntity } from './entities/saved-post.entity';
-import { date } from 'joi';
 
 @Injectable()
 export class PostService {

@@ -25,6 +25,6 @@ import { SharedModule } from './shared/modules/shared.module';
       },
     }), AuthModule, UserModule, FollowerModule, FileModule, PostModule, SharedModule],
   controllers: [AppController],
-  providers: [{ provide: APP_GUARD, useValue: JwtAuthGuard }]
+  // providers: [{ provide: APP_GUARD, useValue: JwtAuthGuard }]
 })
 export class AppModule { }

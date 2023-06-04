@@ -13,11 +13,11 @@ export class RedisEmitterService {
           private redisService: RedisService) {
           this.redisService.subscribe(REDIS_EMIT_TO_ONE)
                .then(this.consumeEmitToOne)
-               .catch(this.logger.error);
+               .catch((err) => this.logger.log(err));
 
           this.redisService.subscribe(REDIS_EMIT_TO_ALL)
                .then(this.consumeEmitToAll)
-               .catch(this.logger.error)
+               .catch((err) => this.logger.log(err))
      }
 
      consumeEmitToOne(eventInfo: RedisEmitEventToOneDto) {

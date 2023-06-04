@@ -9,7 +9,7 @@ export const redisProviders: Provider[] = [
      {
           useFactory: (): RedisClient => {
                return new Redis.Redis({
-                    host: process.env.REDUS_HOST || "redis",
+                    host: process.env.REDIS_HOST || "redis",
                     port: parseInt(process.env.REDIS_POST) || 6379,
                     enableReadyCheck: false,
                     maxRetriesPerRequest: null
@@ -20,7 +20,7 @@ export const redisProviders: Provider[] = [
      {
           useFactory: (): RedisClient => {
                return new Redis.Redis({
-                    host: process.env.REDUS_HOST || "redis",
+                    host: process.env.REDIS_HOST || "redis",
                     port: parseInt(process.env.REDIS_POST) || 6379,
                     enableReadyCheck: false,
                     maxRetriesPerRequest: null
