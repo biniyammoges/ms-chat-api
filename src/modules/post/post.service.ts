@@ -1,6 +1,6 @@
-import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
+import { BadRequestException, Injectable, Logger, NotFoundException } from '@nestjs/common';
 import { InjectEntityManager } from '@nestjs/typeorm';
-import { EntityManager } from 'typeorm';
+import { DeleteResult, EntityManager, UpdateResult } from 'typeorm';
 
 import { PostEntity } from './entities/post.entity';
 import { FollowerService } from '../follower/follower.service';
@@ -10,12 +10,17 @@ import { PostLikeEntity } from './entities/post-like.entity';
 import { CommentEntity } from './entities/comment.entity';
 import { CommentLikeEntity } from './entities/comment-like.entity';
 
-import { PostIdDto, CreateCommentDto, CreatePostDto, CommentIdDto } from './dtos/';
+import { PostIdDto, CreateCommentDto, CreatePostDto, CommentIdDto, CreatePostMediaDto } from './dtos/';
 import { SavedPostEntity } from './entities/saved-post.entity';
+import { UpdatePostDto } from './dtos/update-post.dto';
+import { PostMediaEntity } from './entities/post-media.entity';
+import { UpdateCommentDto } from './dtos/update-comment.dto';
 
 @Injectable()
 export class PostService {
      constructor(@InjectEntityManager() private em: EntityManager, private followerService: FollowerService) { }
+
+     private logger = new Logger(PostService.name);
 
      async create(data: CreatePostDto & { creatorId: string }) {
           const post = await this.em.save(this.em.create(PostEntity, data))
@@ -24,6 +29,56 @@ export class PostService {
           // TODO - emit 'new-post' to all followers 
 
           return post
+     }
+
+     async updatePost(postId: string, data: UpdatePostDto, updaterId: string): Promise<UpdateResult> {
+          const post = await this.em.findOne(PostEntity, { where: { id: postId, creatorId: updaterId }, relations: ['medias'] })
+          if (!post) {
+               throw new BadRequestException("You can't update other users post")
+          }
+
+          // checks if there is update to medias and delete the old one if it doesn't exist in update dto 
+          const oldMedias = post.medias;
+          const newMedias = data.medias;
+          let mediasToDelete: PostMediaEntity[] = []
+          for (const media of oldMedias) {
+               if (!newMedias.find(m => m.fileId === media.fileId)) {
+                    mediasToDelete.push(media)
+               }
+          }
+
+          if (mediasToDelete.length) {
+               for (const media of mediasToDelete) {
+                    this.em.delete(PostMediaEntity, { id: media.id })
+               }
+          }
+
+          return this.em.update(PostEntity, { id: postId }, { ...data })
+     }
+
+     async deletePost(postId: string, userId: string) {
+          const post = await this.em.findOne(PostEntity, { where: { id: postId, creatorId: userId }, relations: ['medias'] })
+          if (!post) {
+               throw new BadRequestException("You can't delete other users post")
+          }
+
+          const runner = this.em.connection.createQueryRunner()
+          await runner.connect()
+          await runner.startTransaction()
+
+          try {
+               for (const media of post.medias) {
+                    await runner.manager.delete(PostMediaEntity, { id: media.id })
+               }
+               await runner.manager.delete(PostEntity, { id: postId })
+               await runner.commitTransaction()
+               return { deleted: true, postId }
+          } catch (err) {
+               this.logger.log(err)
+               await runner.rollbackTransaction()
+          } finally {
+               await runner.release()
+          }
      }
 
      // TODO - retrieve posts with comments like and replies
@@ -266,5 +321,23 @@ export class PostService {
                return alreadySaved.remove()
 
           return this.em.save(this.em.create(SavedPostEntity, { userId, ...postIdDto }))
+     }
+
+     async updateComment(commentId: string, data: UpdateCommentDto, userId: string) {
+          const comment = await this.em.findOneBy(CommentEntity, { id: commentId, commentorId: userId });
+          if (!comment) {
+               throw new NotFoundException("Comment Not Found")
+          }
+
+          return this.em.save({ ...comment, text: data.text })
+     }
+
+     async deleteComment(commentId: string, userId: string) {
+          const comment = await this.em.findOneBy(CommentEntity, { id: commentId, commentorId: userId });
+          if (!comment) {
+               throw new NotFoundException("Comment Not Found")
+          }
+
+          return comment.remove()
      }
 }

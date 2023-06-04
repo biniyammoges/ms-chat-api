@@ -1,4 +1,4 @@
-import { Body, Controller, Get, Param, Post, Query, UseGuards } from '@nestjs/common';
+import { Body, Controller, Delete, Get, Param, Post, Put, Query, UseGuards } from '@nestjs/common';
 import { PostService } from './post.service';
 import { JwtAuthGuard } from '../auth/guards/at.guard';
 import { CreatePostDto, CommentIdDto, LikeStatusDto, PostIdDto, CreateCommentDto } from './dtos';
@@ -8,6 +8,9 @@ import { PostEntity } from './entities/post.entity';
 import { PostLikeEntity } from './entities/post-like.entity';
 import { CommentEntity } from './entities/comment.entity';
 import { SavePostStatusDto } from './dtos/save-post-status.dto';
+import { UpdatePostDto } from './dtos/update-post.dto';
+import { UpdateResult } from 'typeorm';
+import { UpdateCommentDto } from './dtos/update-comment.dto';
 
 @Controller()
 @UseGuards(JwtAuthGuard)
@@ -49,6 +52,16 @@ export class PostController {
     return this.postService.retrieveComments(postIdDto, filter)
   }
 
+  @Put('post/:postId/update')
+  async updatePost(@GetUser('id') updaterId: string, @Body() updatePostDto: UpdatePostDto, @Param() postIdDto: PostIdDto): Promise<UpdateResult> {
+    return this.postService.updatePost(postIdDto.postId, updatePostDto, updaterId)
+  }
+
+  @Delete('post/:postId/delete')
+  async deletePost(@Param() postIdDto: PostIdDto, @GetUser('id') userId: string): Promise<any> {
+    return this.postService.deletePost(postIdDto.postId, userId)
+  }
+
   @Post('comment/create')
   async createComment(@GetUser('id') commentorId: string, @Body() commentDto: CreateCommentDto) {
     return this.postService.createComment(commentDto, commentorId)
@@ -62,5 +75,15 @@ export class PostController {
   @Get('comment/:commentId/retrieve')
   async retrieveCommentReplies(@Param() commentIdDto: CommentIdDto, @Query() filter: PaginationDto): Promise<PaginationEntity<CommentEntity>> {
     return this.postService.retrieveCommentReplies(commentIdDto, filter)
+  }
+
+  @Put('comment/:commentId/update')
+  async updateComment(@GetUser('id') updaterId: string, @Body() updateCommentDto: UpdateCommentDto, @Param() commentIdDto: CommentIdDto): Promise<any> {
+    return this.postService.updateComment(commentIdDto.commentId, updateCommentDto, updaterId)
+  }
+
+  @Delete('post/:postId/delete')
+  async deleteComment(@Param() commentIdDto: CommentIdDto, @GetUser('id') userId: string): Promise<any> {
+    return this.postService.deleteComment(commentIdDto.commentId, userId)
   }
 }
