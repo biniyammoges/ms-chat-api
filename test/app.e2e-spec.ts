@@ -1,16 +1,10 @@
 import { TestClient } from './utils/client';
-import { setupTestClient } from './utils/setup';
+import { useClient, useTransaction } from './utils/service/hooks';
 
 describe('AppController (e2e)', () => {
   let client: TestClient;
 
-  beforeAll(async () => {
-    client = await setupTestClient()
-  });
-
-  afterAll(async () => {
-    await client.close()
-  })
+  useClient({ beforeAll: (cl) => (client = cl) })
 
   it('/ (GET) should return not found error', async () => {
     const res = await client.requestApi('/not-found-router');

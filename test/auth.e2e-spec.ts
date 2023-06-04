@@ -5,15 +5,12 @@ import { setupTestClient } from "./utils/setup"
 import { SignUpDto } from "src/modules/auth/dtos/signup.dto"
 import { UserDto } from "src/modules/user/dtos/user.dto"
 import { JwtResponse } from "src/modules/auth/dtos"
+import { useClient, useTransaction } from "./utils/service/hooks"
 
 describe('Authentication', () => {
      let client: TestClient
 
-     beforeAll(async () => {
-          client = await setupTestClient()
-     })
-     afterEach(() => client.clearHeaders())
-     afterAll(async () => await client.close())
+     useClient({ beforeAll: (cl) => (client = cl) })
 
      it('/api/auth/login (POST) - return invalid email or password when tried with wrong credentials', async () => {
           const response = await client.requestApi<SignInDto>('/auth/login', { body: { emailOrUsername: userFixtures.user0.email, password: '123465788' }, method: 'post' })
