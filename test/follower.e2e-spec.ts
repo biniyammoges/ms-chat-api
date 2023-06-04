@@ -1,15 +1,13 @@
 import { PaginationEntity } from "../src/shared";
 import { TestClient } from "./utils/client";
 import { userFixtures } from "./utils/fixtures/user.fixture";
-import { setupTestClient } from "./utils/setup";
 import { FollowerEntity } from "../src/modules/follower/entities/follower.entity";
-import { useClient, useTransaction } from "./utils/service/hooks";
+import { useClient } from "./utils/service/hooks";
 
 describe('Follower module (e2e)', () => {
      let client: TestClient;
 
      useClient({ beforeAll: (cl) => (client = cl) })
-     useTransaction({ before: 'all', client: () => client })
 
      it('/followers/:username (GET) should return error with unknown username', async () => {
           await client.login();

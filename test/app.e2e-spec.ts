@@ -5,7 +5,6 @@ describe('AppController (e2e)', () => {
   let client: TestClient;
 
   useClient({ beforeAll: (cl) => (client = cl) })
-  // useTransaction({ before: 'all', client: () => client })
 
   it('/ (GET) should return not found error', async () => {
     const res = await client.requestApi('/not-found-router');

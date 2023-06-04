@@ -20,7 +20,7 @@ export class AuthService {
      ) { }
 
      async validateAuth(payload: JwtPaylaod, isRefresh = false) {
-          const user = await this.em.findOneOrFail(UserEntity, {
+          const user = await this.em.findOne(UserEntity, {
                where: {
                     id: payload.sub,
                     email: payload.email,
@@ -70,7 +70,7 @@ export class AuthService {
      }
 
      async signOut(userId: string): Promise<void> {
-          const user = await this.em.findOneOrFail(UserEntity, { where: { id: userId } });
+          const user = await this.em.findOne(UserEntity, { where: { id: userId } });
           await this.em.save(UserEntity, { ...user, refreshToken: null })
      }
 

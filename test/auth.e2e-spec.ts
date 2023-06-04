@@ -11,7 +11,6 @@ describe('Authentication', () => {
      let client: TestClient
 
      useClient({ beforeAll: (cl) => (client = cl) })
-     useTransaction({ before: 'all', client: () => client })
 
      it('/api/auth/login (POST) - return invalid email or password when tried with wrong credentials', async () => {
           const response = await client.requestApi<SignInDto>('/auth/login', { body: { emailOrUsername: userFixtures.user0.email, password: '123465788' }, method: 'post' })
