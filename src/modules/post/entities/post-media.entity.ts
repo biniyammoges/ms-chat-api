@@ -8,14 +8,14 @@ export class PostMediaEntity extends AbstractEntity {
      @Column()
      fileId: string;
 
-     @OneToOne(() => FileEntity)
+     @OneToOne(() => FileEntity, { onDelete: 'CASCADE' })
      @JoinColumn({ name: "fileId" })
      file?: FileEntity
 
-     @Column()
+     @Column({ nullable: true })
      postId: string;
 
-     @ManyToOne(() => FileEntity)
+     @ManyToOne(() => PostEntity)
      @JoinColumn({ name: "postId" })
      post?: PostEntity
 }

@@ -10,11 +10,11 @@ export class CommentEntity extends AbstractEntity {
      @Column()
      parentCommentId: string;
 
-     @ManyToOne(() => CommentEntity, cm => cm.replies, { onDelete: "CASCADE" })
+     @OneToMany(() => CommentEntity, cm => cm.replies, { onDelete: "CASCADE" })
      @JoinColumn({ name: "parentCommentId" })
      parentComment?: CommentEntity
 
-     @OneToMany(() => CommentEntity, cm => cm.parentCommentId)
+     @ManyToOne(() => CommentEntity, cm => cm.parentComment)
      replies: CommentEntity[]
 
      @Column()
@@ -34,7 +34,7 @@ export class CommentEntity extends AbstractEntity {
      @JoinColumn({ name: "postId" })
      post?: PostEntity
 
-     @OneToMany(() => CommentLikeEntity, cm => cm.commentId, { onDelete: "CASCADE" })
+     @OneToMany(() => CommentLikeEntity, cm => cm.comment, { onDelete: "CASCADE" })
      likes: CommentLikeEntity[]
 
      likeCount?: number

@@ -23,9 +23,13 @@ export class PostService {
      private logger = new Logger(PostService.name);
 
      async create(data: CreatePostDto & { creatorId: string }) {
+          if (!data.caption && !data.medias?.length) {
+               throw new BadRequestException("Both caption and files can't be empty")
+          }
+
           const post = await this.em.save(this.em.create(PostEntity, data))
 
-          const followers = await this.followerService.getFollowers(data.creatorId);
+          // const followers = await this.followerService.getFollowers(data.creatorId);
           // TODO - emit 'new-post' to all followers 
 
           return post
@@ -82,16 +86,16 @@ export class PostService {
      }
 
      // TODO - retrieve posts with comments like and replies
-     async retrievePosts(fetchorId: string, filter: PaginationDto = { page: 1, limit: 20 }) {
+     async retrievePosts(fetchorId: string, filter: PaginationDto) {
           const [posts, total] = await this.em.createQueryBuilder(PostEntity, 'p')
-               .innerJoin("p.creator", "creator")
+               .innerJoinAndSelect("p.creator", "creator")
                .innerJoin("creator.followers", "followers")
-               .where("followers.followerId = :fetchorId", { fetchorId })
-               .orWhere("p.creatorId = :fetcherId", { fetchorId })
+               .where("followers.followerId = :followerId", { followerId: fetchorId })
+               .orWhere("creator.id = :fetchorId", { fetchorId })
                .leftJoin("p.comments", "comments")
                .addSelect((subQuery) => {
                     return subQuery
-                         .select("Count(comments.id)", "commentCount")
+                         .select("COUNT(comments.id)", "commentCount")
                          .from(CommentEntity.name, "comments")
                          .where("comments.postId = p.id")
                }, "commentCount")
@@ -110,13 +114,13 @@ export class PostService {
           return new PaginationEntity({ data: posts, total })
      }
 
-     async retrieveMyPosts(myId: string, filter: PaginationDto = { page: 1, limit: 10 }) {
+     async retrieveMyPosts(myId: string, filter: PaginationDto) {
           const [posts, total] = await this.em.createQueryBuilder(PostEntity, 'p')
                .where("p.creatorId = :myId", { myId })
                .leftJoin("p.comments", "comments")
                .addSelect((subQuery) => {
                     return subQuery
-                         .select("Count(comments.id)", "commentCount")
+                         .select("COUNT(comments.id)", "commentCount")
                          .from(CommentEntity.name, "comments")
                          .where("comments.postId = p.id")
                }, "commentCount")
@@ -157,10 +161,12 @@ export class PostService {
 
           // If like entity doesn't exist with likerId, then the user didn't liked the post before
           if (unlike && !alreadyLiked)
-               throw new BadRequestException("You have to like first inorder to unlike")
+               throw new BadRequestException("You didn't like the post")
           // user has already liked before so he can unlike
-          else if (unlike && alreadyLiked)
-               return alreadyLiked.remove()
+          else if (unlike && alreadyLiked) {
+               await alreadyLiked.remove()
+               return { unlike: true }
+          }
      }
 
      /**

@@ -23,13 +23,13 @@ export class PostController {
   }
 
   @Get('post/retrieve/feed')
-  async retrievePosts(@GetUser('id') fetcherId: string, @Query() filter: PaginationDto): Promise<PaginationEntity<PostEntity>> {
-    return this.postService.retrievePosts(fetcherId, filter)
+  async retrievePosts(@GetUser('id') fetcherId: string, @Query('limit') limit: number = 20, @Query('page') page: number = 1): Promise<PaginationEntity<PostEntity>> {
+    return this.postService.retrievePosts(fetcherId, { limit, page })
   }
 
   @Get('post/retrieve/me')
-  async retrieveMyPosts(@GetUser('id') id: string, @Query() filter: PaginationDto): Promise<PaginationEntity<PostEntity>> {
-    return this.postService.retrieveMyPosts(id, filter)
+  async retrieveMyPosts(@GetUser('id') id: string, @Query('limit') limit: number = 20, @Query('page') page: number = 1): Promise<PaginationEntity<PostEntity>> {
+    return this.postService.retrieveMyPosts(id, { limit, page })
   }
 
   @Get('post/:postId/like')

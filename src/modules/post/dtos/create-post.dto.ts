@@ -1,5 +1,5 @@
 import { Type } from "class-transformer";
-import { IsArray, IsOptional, IsUUID, ValidateNested } from "class-validator";
+import { IsArray, IsOptional, IsString, IsUUID, ValidateNested } from "class-validator";
 
 export class CreatePostMediaDto {
      @IsUUID()
@@ -12,11 +12,13 @@ export class CreatePostMediaDto {
 
 export class CreatePostDto {
      @IsOptional()
+     @IsString()
      caption?: string
 
+     @IsOptional()
      @ValidateNested({ each: true })
      @IsArray()
      @Type(() => CreatePostMediaDto)
-     medias: CreatePostMediaDto[]
+     medias?: CreatePostMediaDto[]
 }
 

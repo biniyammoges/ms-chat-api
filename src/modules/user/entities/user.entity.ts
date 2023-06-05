@@ -41,13 +41,13 @@ export class UserEntity extends AbstractEntity {
      @Column({ nullable: true })
      fcmToken?: string;
 
-     @OneToMany((type) => FollowerEntity, follow => follow.followeeId, { onDelete: 'CASCADE' })
-     followers?: FollowerEntity
+     @OneToMany((type) => FollowerEntity, follow => follow.followee, { onDelete: 'CASCADE' })
+     followers?: FollowerEntity[]
 
-     @OneToMany((type) => FollowerEntity, follow => follow.followerId, { onDelete: 'CASCADE' })
-     followeings?: FollowerEntity
+     @OneToMany((type) => FollowerEntity, follow => follow.follower, { onDelete: 'CASCADE' })
+     followings?: FollowerEntity[]
 
-     @OneToMany((type) => PostEntity, post => post.creatorId, { onDelete: "CASCADE" })
+     @OneToMany((type) => PostEntity, post => post.creator, { onDelete: "CASCADE" })
      posts: PostEntity[]
 
      followerCount?: number

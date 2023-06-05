@@ -17,16 +17,17 @@ export class PostEntity extends AbstractEntity {
      @JoinColumn({ name: "creatorId" })
      creator: UserEntity
 
-     @OneToMany(() => PostMediaEntity, (pm) => pm.postId, {
-          cascade: ["insert", "recover", "remove", "update"],
+     @OneToMany(() => PostMediaEntity, (pm) => pm.post, {
+          cascade: true,
+          onDelete: "CASCADE",
           eager: true
      })
      medias: PostMediaEntity[]
 
-     @OneToMany(() => PostLikeEntity, (like) => like.postId, { onDelete: "CASCADE" })
+     @OneToMany(() => PostLikeEntity, (like) => like.post, { onDelete: "CASCADE" })
      likes: PostLikeEntity[]
 
-     @OneToMany(() => CommentEntity, cm => cm.postId, { onDelete: "CASCADE" })
+     @OneToMany(() => CommentEntity, cm => cm.post, { onDelete: "CASCADE" })
      comments: CommentEntity[]
 
      likeCount?: number

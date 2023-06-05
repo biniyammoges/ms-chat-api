@@ -1,6 +1,7 @@
 import { AbstractEntity } from "../../shared";
-import { Column, Entity, JoinColumn, ManyToOne } from "typeorm";
+import { Column, Entity, JoinColumn, ManyToOne, OneToOne } from "typeorm";
 import { UserEntity } from "../user/entities/user.entity";
+import { PostMediaEntity } from "../post/entities/post-media.entity";
 
 @Entity()
 export class FileEntity extends AbstractEntity {
@@ -28,5 +29,8 @@ export class FileEntity extends AbstractEntity {
      @ManyToOne(() => UserEntity, { onDelete: 'SET NULL' })
      @JoinColumn({ name: "creatorId", })
      creator?: UserEntity
+
+     @OneToOne(() => PostMediaEntity, pm => pm.file, { onDelete: "CASCADE" })
+     postMedia?: PostMediaEntity
 }
 
