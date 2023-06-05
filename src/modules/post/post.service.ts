@@ -1,6 +1,6 @@
 import { BadRequestException, Injectable, Logger, NotFoundException } from '@nestjs/common';
 import { InjectEntityManager } from '@nestjs/typeorm';
-import { DeleteResult, EntityManager, UpdateResult } from 'typeorm';
+import { EntityManager, UpdateResult } from 'typeorm';
 
 import { PostEntity } from './entities/post.entity';
 import { FollowerService } from '../follower/follower.service';
@@ -92,23 +92,11 @@ export class PostService {
                .innerJoin("creator.followers", "followers")
                .where("followers.followerId = :followerId", { followerId: fetchorId })
                .orWhere("creator.id = :fetchorId", { fetchorId })
-               .leftJoin("p.comments", "comments")
-               .addSelect((subQuery) => {
-                    return subQuery
-                         .select("COUNT(comments.id)", "commentCount")
-                         .from(CommentEntity.name, "comments")
-                         .where("comments.postId = p.id")
-               }, "commentCount")
-               .leftJoin("p.likes", "likes")
-               .addSelect((subQuery) => {
-                    return subQuery
-                         .select("Count(likes.id)", "likeCount")
-                         .from(PostLikeEntity.name, "likes")
-                         .where("likes.postId = p.id")
-               }, "likeCount")
+               .loadRelationCountAndMap('p.commentCount', 'p.comments')
+               .loadRelationCountAndMap('p.likeCount', 'p.likes')
+               .orderBy("p.createdAt", "DESC")
                .limit(filter.limit)
                .skip((filter.page - 1) * filter.limit)
-               .orderBy("p.createdAt", "DESC")
                .getManyAndCount();
 
           return new PaginationEntity({ data: posts, total })
@@ -117,23 +105,11 @@ export class PostService {
      async retrieveMyPosts(myId: string, filter: PaginationDto) {
           const [posts, total] = await this.em.createQueryBuilder(PostEntity, 'p')
                .where("p.creatorId = :myId", { myId })
-               .leftJoin("p.comments", "comments")
-               .addSelect((subQuery) => {
-                    return subQuery
-                         .select("COUNT(comments.id)", "commentCount")
-                         .from(CommentEntity.name, "comments")
-                         .where("comments.postId = p.id")
-               }, "commentCount")
-               .leftJoin("p.likes", "likes")
-               .addSelect((subQuery) => {
-                    return subQuery
-                         .select("Count(likes.id)", "likeCount")
-                         .from(PostLikeEntity.name, "likes")
-                         .where("likes.postId = p.id")
-               }, "likeCount")
+               .loadRelationCountAndMap('p.commentCount', 'p.comments')
+               .loadRelationCountAndMap('p.likeCount', 'p.likes')
+               .orderBy("p.createdAt", "DESC")
                .limit(filter.limit)
                .skip((filter.page - 1) * filter.limit)
-               .orderBy("p.createdAt", "DESC")
                .getManyAndCount();
 
           return new PaginationEntity({ data: posts, total })
@@ -148,7 +124,7 @@ export class PostService {
       */
      async likePost(data: PostIdDto, likerId: string, unlike = false) {
           const post = await this.em.findOne(PostEntity, { where: { id: data.postId } })
-          if (!post) throw new BadRequestException()
+          if (!post) throw new BadRequestException("Post Not Found")
 
           const alreadyLiked = await this.em.findOne(PostLikeEntity, { where: { postId: data.postId, likerId } });
 
@@ -204,7 +180,7 @@ export class PostService {
           const [likes, total] = await this.em.createQueryBuilder(PostLikeEntity, 'like')
                .where('like.postId = :postId', { postId: data.postId })
                .innerJoinAndSelect('like.liker', 'liker')
-               .select(['liker.id', 'liker.firstName', 'like.lastName'])
+               .orderBy("like.createdAt", 'DESC')
                .limit(filter.limit)
                .skip((filter.page - 1) * filter.limit)
                .getManyAndCount();
@@ -245,21 +221,9 @@ export class PostService {
           const [comments, total] = await this.em.createQueryBuilder(CommentEntity, 'comment')
                .where('comment.postId = :postId', { postId: data.postId })
                .innerJoinAndSelect('comment.commentor', 'commentor')
-               .select(['commentor.id', 'commentor.firstName', 'comment.lastName'])
-               .leftJoin("comment.likes", "likes")
-               .addSelect(subQuery => {
-                    return subQuery
-                         .select("COUNT(likes.id)", "likeCount")
-                         .from(CommentLikeEntity.name, "commentLikes")
-                         .where("commentLikes.commentId = comment.id")
-               }, "likeCount")
-               .leftJoin("comment.replies", "replies")
-               .addSelect(subQuery => {
-                    return subQuery
-                         .select("COUNT(replies.id)", "replyCount")
-                         .from(CommentEntity.name, "commentReplies")
-                         .where("commentReplies.parentCommentId = comment.id")
-               }, "replyCount")
+               .loadRelationCountAndMap('comment.likeCount', 'comment.likes')
+               .loadRelationCountAndMap('comment.replyCount', 'comment.replies')
+               .orderBy("comment.createdAt", 'DESC')
                .limit(filter.limit)
                .skip((filter.page - 1) * filter.limit)
                .getManyAndCount();
@@ -269,27 +233,14 @@ export class PostService {
 
      async retrieveCommentReplies(data: CommentIdDto, filter: PaginationDto = { page: 1, limit: 15 }): Promise<PaginationEntity<CommentEntity>> {
           const comment = await this.em.findOne(CommentEntity, { where: { parentCommentId: data.commentId } })
-          if (!comment) throw new BadRequestException()
+          if (!comment) throw new BadRequestException('Comment Not Found')
 
           const [comments, total] = await this.em.createQueryBuilder(CommentEntity, 'comment')
                .where('comment.parentCommentId = :commentId', { commentId: data.commentId })
                .innerJoinAndSelect('comment.commentor', 'commentor')
-               .select(['commentor.id', 'commentor.firstName', 'comment.lastName'])
-               .select(['commentor.id', 'commentor.firstName', 'comment.lastName'])
-               .leftJoin("comment.likes", "likes")
-               .addSelect(subQuery => {
-                    return subQuery
-                         .select("COUNT(likes.id)", "likeCount")
-                         .from(CommentLikeEntity.name, "commentLikes")
-                         .where("commentLikes.commentId = comment.id")
-               }, "likeCount")
-               .leftJoin("comment.replies", "replies")
-               .addSelect(subQuery => {
-                    return subQuery
-                         .select("COUNT(replies.id)", "replyCount")
-                         .from(CommentEntity.name, "commentReplies")
-                         .where("commentReplies.parentCommentId = comment.id")
-               }, "replyCount")
+               .loadRelationCountAndMap('comment.likeCount', 'comment.likes')
+               .loadRelationCountAndMap('comment.replyCount', 'comment.replies')
+               .orderBy('comment.createdAt', 'DESC')
                .limit(filter.limit)
                .skip((filter.page - 1) * filter.limit)
                .getManyAndCount();
@@ -304,7 +255,7 @@ export class PostService {
       * @param {boolean} unsave - 
       * @returns  - returns CommentLikeEnriry
       */
-     async savePost(postIdDto: PostIdDto, userId: string, unsave = false): Promise<SavedPostEntity> {
+     async savePost(postIdDto: PostIdDto, userId: string, unsave = false): Promise<SavedPostEntity | { unsaved: boolean }> {
           const post = await this.em.findOneBy(PostEntity, { id: postIdDto.postId });
           if (!post)
                throw new NotFoundException('Post Not Found')
@@ -321,10 +272,12 @@ export class PostService {
           }
 
           if (unsave && !alreadySaved)
-               throw new BadRequestException("You have to save first inorder to unsave")
+               throw new BadRequestException("You didn't save the post")
           // user has already liked before so he can unsave now
-          else if (unsave && alreadySaved)
-               return alreadySaved.remove()
+          else if (unsave && alreadySaved) {
+               await alreadySaved.remove()
+               return { unsaved: true }
+          }
 
           return this.em.save(this.em.create(SavedPostEntity, { userId, ...postIdDto }))
      }
@@ -335,7 +288,7 @@ export class PostService {
                throw new NotFoundException("Comment Not Found")
           }
 
-          return this.em.save({ ...comment, text: data.text })
+          return this.em.save(CommentEntity, { ...comment, text: data.text })
      }
 
      async deleteComment(commentId: string, userId: string) {
@@ -344,6 +297,7 @@ export class PostService {
                throw new NotFoundException("Comment Not Found")
           }
 
-          return comment.remove()
+          await comment.remove()
+          return { deleted: true, commentId: comment.id }
      }
 }

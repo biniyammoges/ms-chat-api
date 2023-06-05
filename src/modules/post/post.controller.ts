@@ -2,7 +2,7 @@ import { Body, Controller, Delete, Get, Param, Post, Put, Query, UseGuards } fro
 import { PostService } from './post.service';
 import { JwtAuthGuard } from '../auth/guards/at.guard';
 import { CreatePostDto, CommentIdDto, LikeStatusDto, PostIdDto, CreateCommentDto } from './dtos';
-import { GetUser, PaginationDto, PaginationEntity } from '../../shared';
+import { GetUser, PaginationEntity } from '../../shared';
 
 import { PostEntity } from './entities/post.entity';
 import { PostLikeEntity } from './entities/post-like.entity';
@@ -22,6 +22,16 @@ export class PostController {
     return this.postService.create({ ...data, creatorId })
   }
 
+  @Put('post/:postId/update')
+  async updatePost(@GetUser('id') updaterId: string, @Body() updatePostDto: UpdatePostDto, @Param() postIdDto: PostIdDto): Promise<UpdateResult> {
+    return this.postService.updatePost(postIdDto.postId, updatePostDto, updaterId)
+  }
+
+  @Delete('post/:postId/delete')
+  async deletePost(@Param() postIdDto: PostIdDto, @GetUser('id') userId: string): Promise<any> {
+    return this.postService.deletePost(postIdDto.postId, userId)
+  }
+
   @Get('post/retrieve/feed')
   async retrievePosts(@GetUser('id') fetcherId: string, @Query('limit') limit: number = 20, @Query('page') page: number = 1): Promise<PaginationEntity<PostEntity>> {
     return this.postService.retrievePosts(fetcherId, { limit, page })
@@ -37,29 +47,14 @@ export class PostController {
     return this.postService.likePost(postIdDto, likerId, !!likeStatusDto.unlike)
   }
 
+  @Get('post/:postId/likes')
+  async retrievePostLikes(@Param() postIdDto: PostIdDto, @Query('limit') limit: number = 20, @Query('page') page: number = 1): Promise<PaginationEntity<PostLikeEntity>> {
+    return this.postService.retrievePostLikes(postIdDto, { limit, page })
+  }
+
   @Get('post/:postId/save')
   async savePost(@GetUser('id') userId: string, @Param() postIdDto: PostIdDto, @Query() savePostStatusDto: SavePostStatusDto) {
     return this.postService.savePost(postIdDto, userId, !!savePostStatusDto.unsave)
-  }
-
-  @Get('post/:postId/likes')
-  async retrievePostLikes(@Param() postIdDto: PostIdDto, @Query() filter: PaginationDto): Promise<PaginationEntity<PostLikeEntity>> {
-    return this.postService.retrievePostLikes(postIdDto, filter)
-  }
-
-  @Get('post/:postId/comments')
-  async retrieveComments(@Param() postIdDto: PostIdDto, @Query() filter: PaginationDto): Promise<PaginationEntity<CommentEntity>> {
-    return this.postService.retrieveComments(postIdDto, filter)
-  }
-
-  @Put('post/:postId/update')
-  async updatePost(@GetUser('id') updaterId: string, @Body() updatePostDto: UpdatePostDto, @Param() postIdDto: PostIdDto): Promise<UpdateResult> {
-    return this.postService.updatePost(postIdDto.postId, updatePostDto, updaterId)
-  }
-
-  @Delete('post/:postId/delete')
-  async deletePost(@Param() postIdDto: PostIdDto, @GetUser('id') userId: string): Promise<any> {
-    return this.postService.deletePost(postIdDto.postId, userId)
   }
 
   @Post('comment/create')
@@ -72,9 +67,14 @@ export class PostController {
     return this.postService.likeComment(commentIdDto, likerId, !!likeStatusDto.unlike)
   }
 
+  @Get('post/:postId/comments')
+  async retrieveComments(@Param() postIdDto: PostIdDto, @Query('limit') limit: number = 20, @Query('page') page: number = 1): Promise<PaginationEntity<CommentEntity>> {
+    return this.postService.retrieveComments(postIdDto, { limit, page })
+  }
+
   @Get('comment/:commentId/retrieve')
-  async retrieveCommentReplies(@Param() commentIdDto: CommentIdDto, @Query() filter: PaginationDto): Promise<PaginationEntity<CommentEntity>> {
-    return this.postService.retrieveCommentReplies(commentIdDto, filter)
+  async retrieveCommentReplies(@Param() commentIdDto: CommentIdDto, @Query('limit') limit: number = 20, @Query('page') page: number = 1): Promise<PaginationEntity<CommentEntity>> {
+    return this.postService.retrieveCommentReplies(commentIdDto, { limit, page })
   }
 
   @Put('comment/:commentId/update')
@@ -82,7 +82,7 @@ export class PostController {
     return this.postService.updateComment(commentIdDto.commentId, updateCommentDto, updaterId)
   }
 
-  @Delete('post/:postId/delete')
+  @Delete('comment/:commentId/delete')
   async deleteComment(@Param() commentIdDto: CommentIdDto, @GetUser('id') userId: string): Promise<any> {
     return this.postService.deleteComment(commentIdDto.commentId, userId)
   }

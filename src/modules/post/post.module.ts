@@ -9,9 +9,10 @@ import { FollowerModule } from '../follower/follower.module';
 import { PostLikeEntity } from './entities/post-like.entity';
 import { CommentEntity } from './entities/comment.entity';
 import { CommentLikeEntity } from './entities/comment-like.entity';
+import { SavedPostEntity } from './entities/saved-post.entity';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([PostEntity, PostMediaEntity, PostLikeEntity, CommentEntity, CommentLikeEntity]), FollowerModule],
+  imports: [TypeOrmModule.forFeature([PostEntity, PostMediaEntity, PostLikeEntity, CommentEntity, CommentLikeEntity, SavedPostEntity]), FollowerModule],
   controllers: [PostController],
   providers: [PostService, PostGateway]
 })

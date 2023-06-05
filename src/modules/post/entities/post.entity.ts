@@ -4,6 +4,8 @@ import { Column, Entity, JoinColumn, ManyToOne, OneToMany } from "typeorm";
 import { PostMediaEntity } from "./post-media.entity";
 import { PostLikeEntity } from "./post-like.entity";
 import { CommentEntity } from "./comment.entity";
+import { SavedPostEntity } from "./saved-post.entity";
+import { VirtualColumn } from "../../../decorators/virtual-column.decorator";
 
 @Entity()
 export class PostEntity extends AbstractEntity {
@@ -30,6 +32,12 @@ export class PostEntity extends AbstractEntity {
      @OneToMany(() => CommentEntity, cm => cm.post, { onDelete: "CASCADE" })
      comments: CommentEntity[]
 
+     @OneToMany(() => SavedPostEntity, sp => sp.post, { onDelete: "CASCADE" })
+     savedUsers: SavedPostEntity[]
+
+     @VirtualColumn()
      likeCount?: number
+
+     @VirtualColumn()
      commentCount?: number
 }

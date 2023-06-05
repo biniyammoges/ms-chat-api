@@ -11,6 +11,7 @@ import { FollowerModule } from './modules/follower/follower.module';
 import { FileModule } from './modules/file/file.module';
 import { PostModule } from './modules/post/post.module';
 import { SharedModule } from './shared/modules/shared.module';
+import './virtual-column.polyfill'
 
 @Module({
   imports: [
