@@ -23,7 +23,7 @@ export class PostController {
   }
 
   @Put('post/:postId/update')
-  async updatePost(@GetUser('id') updaterId: string, @Body() updatePostDto: UpdatePostDto, @Param() postIdDto: PostIdDto): Promise<UpdateResult> {
+  async updatePost(@GetUser('id') updaterId: string, @Body() updatePostDto: UpdatePostDto, @Param() postIdDto: PostIdDto): Promise<PostEntity> {
     return this.postService.updatePost(postIdDto.postId, updatePostDto, updaterId)
   }
 

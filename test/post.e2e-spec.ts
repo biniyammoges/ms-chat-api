@@ -8,6 +8,7 @@ import { userFixtures } from "./utils/fixtures/user.fixture";
 import { PostLikeEntity } from "../src/modules/post/entities/post-like.entity";
 import { postFixtures } from "./utils/fixtures/post.fixture";
 import { SavedPostEntity } from "../src/modules/post/entities/saved-post.entity";
+import { UpdatePostDto } from "src/modules/post/dtos/update-post.dto";
 
 describe("Post module", () => {
      let client: TestClient;
@@ -37,6 +38,27 @@ describe("Post module", () => {
                const res = await client.requestApi<CreatePostDto, PostEntity>("/post/create", { method: "post", body })
                expect(res.caption).toBe("caption created!")
                expect(res.medias[0].fileId).toBe(fileFixtures.file2.id)
+          })
+     })
+
+     describe("update post", () => {
+          it("/post/:postId/update - (PUT) - should update post", async () => {
+               await client.login()
+               const postDto: UpdatePostDto = {
+                    caption: "post0 updated!",
+                    medias: [{ fileId: "937215a2-3fef-4274-bb4b-ab3abe1763c4" }]
+               }
+               const res = await client.requestApi<CreatePostDto, PostEntity>(`/post/${postFixtures.post0.id}/update`, { method: "put", body: postDto })
+               expect(res.caption).toBe("post0 updated!")
+          })
+
+          it("/post/:postId/update - (PUT) - should return post not found error with unknown postId", async () => {
+               await client.login()
+               const postDto: UpdatePostDto = {
+                    caption: "post0 updated!",
+               }
+               const res = await client.requestApi(`/post/${postFixtures.post1.id}/update`, { method: "put", body: postDto })
+               expect(res.message).toBe("Post Not Found")
           })
      })
 
@@ -117,6 +139,20 @@ describe("Post module", () => {
                await client.login()
                const res = await client.requestApi(`/post/${postFixtures.post1.id}/save?unsave=true`)
                expect(res.message).toBe("You didn't save the post")
+          })
+     })
+
+     describe("delete post", () => {
+          it("/post/:postId/delete - (DELETE) - should delete post", async () => {
+               await client.login()
+               const res = await client.requestApi(`/post/${postFixtures.post0.id}/delete`, { method: "delete" })
+               expect(res).toBeDefined()
+          })
+
+          it("/post/:postId/delete - (DELETE) - should return post not found error with unknown postId", async () => {
+               await client.login()
+               const res = await client.requestApi(`/post/${postFixtures.post1.id}/delete`, { method: "delete" })
+               expect(res.message).toBe("Post Not Found")
           })
      })
 })

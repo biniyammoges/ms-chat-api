@@ -35,19 +35,22 @@ export class PostService {
           return post
      }
 
-     async updatePost(postId: string, data: UpdatePostDto, updaterId: string): Promise<UpdateResult> {
+     async updatePost(postId: string, data: UpdatePostDto, updaterId: string): Promise<PostEntity> {
           const post = await this.em.findOne(PostEntity, { where: { id: postId, creatorId: updaterId }, relations: ['medias'] })
           if (!post) {
-               throw new BadRequestException("You can't update other users post")
+               throw new BadRequestException("Post Not Found")
           }
 
           // checks if there is update to medias and delete the old one if it doesn't exist in update dto 
           const oldMedias = post.medias;
           const newMedias = data.medias;
           let mediasToDelete: PostMediaEntity[] = []
-          for (const media of oldMedias) {
-               if (!newMedias.find(m => m.fileId === media.fileId)) {
-                    mediasToDelete.push(media)
+
+          if (oldMedias?.length && newMedias?.length) {
+               for (const media of oldMedias) {
+                    if (!newMedias.find(m => m.fileId === media.fileId)) {
+                         mediasToDelete.push(media)
+                    }
                }
           }
 
@@ -57,13 +60,13 @@ export class PostService {
                }
           }
 
-          return this.em.update(PostEntity, { id: postId }, { ...data })
+          return this.em.save(PostEntity, { id: postId, ...data })
      }
 
      async deletePost(postId: string, userId: string) {
           const post = await this.em.findOne(PostEntity, { where: { id: postId, creatorId: userId }, relations: ['medias'] })
           if (!post) {
-               throw new BadRequestException("You can't delete other users post")
+               throw new BadRequestException("Post Not Found")
           }
 
           const runner = this.em.connection.createQueryRunner()
@@ -75,6 +78,7 @@ export class PostService {
                     await runner.manager.delete(PostMediaEntity, { id: media.id })
                }
                await runner.manager.delete(PostEntity, { id: postId })
+               this.logger.log('delete transaction commited')
                await runner.commitTransaction()
                return { deleted: true, postId }
           } catch (err) {
