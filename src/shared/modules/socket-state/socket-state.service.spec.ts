@@ -61,4 +61,18 @@ describe('Socket State', () => {
           })
      })
 
+     describe("getSocketsInRoom", () => {
+          it("should return list of connected socket with in given room", () => {
+               let userId = "user1";
+               let userId2 = "user2"
+               let socket1 = { id: "socketId1", rooms: { has: (room: string) => !!room } } as any
+               let socket2 = { id: "socketId2", rooms: { has: (room: string) => !!room } } as any
+               let socket3 = { id: "socketId3", rooms: { has: (room: string) => !!room } } as any
+
+               socketStateService['sockets'] = { [userId]: [socket1, socket2], [userId2]: [socket3] }
+               const res = socketStateService.getSocketsInRoom('roomId', socket1.id)
+               expect(res).toEqual([socket2, socket3])
+          })
+     })
+
 })

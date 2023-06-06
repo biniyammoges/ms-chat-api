@@ -1,8 +1,8 @@
 import { Injectable, Logger } from "@nestjs/common";
 import { SocketStateService } from "../socket-state/socket-state.service";
 import { RedisService } from "../redis/redis.service";
-import { REDIS_EMIT_TO_ALL, REDIS_EMIT_TO_ONE } from "./redis-emitter.constant";
-import { RedisEmitEventDto, RedisEmitEventToOneDto } from "./dto/redis-emit.dto";
+import { REDIS_EMIT_TO_ALL, REDIS_EMIT_TO_ONE, REDIS_EMIT_TO_ROOM } from "./redis-emitter.constant";
+import { RedisEmitEventDto, RedisEmitEventToOneDto, RedisEmitRoomEventDto } from "./dto/redis-emit.dto";
 
 @Injectable()
 export class RedisEmitterService {
@@ -18,6 +18,10 @@ export class RedisEmitterService {
           this.redisService.subscribe(REDIS_EMIT_TO_ALL)
                .then(this.consumeEmitToAll)
                .catch((err) => this.logger.log(err))
+
+          this.redisService.subscribe(REDIS_EMIT_TO_ROOM)
+               .then(this.consumeEmitToRoom)
+               .catch((err) => this.logger.log(err))
      }
 
      consumeEmitToOne(eventInfo: RedisEmitEventToOneDto) {
@@ -26,6 +30,15 @@ export class RedisEmitterService {
           const sockets = this.socketStateService.get(userId).filter(s => s.id !== socketId);
           for (const s of sockets) {
                s.emit(event, data);
+          }
+     }
+
+     consumeEmitToRoom(eventInfo: RedisEmitRoomEventDto) {
+          const { event, data, roomId, socketId } = eventInfo
+
+          const sockets = this.socketStateService.getSocketsInRoom(roomId, socketId)
+          for (const s of sockets) {
+               s.emit(event, data)
           }
      }
 
@@ -40,6 +53,11 @@ export class RedisEmitterService {
 
      emitToOne(eventInfo: RedisEmitEventToOneDto): boolean {
           this.redisService.publish(REDIS_EMIT_TO_ONE, eventInfo);
+          return true
+     }
+
+     emitToRoom(eventInfo: RedisEmitRoomEventDto): boolean {
+          this.redisService.publish(REDIS_EMIT_TO_ROOM, eventInfo)
           return true
      }
 

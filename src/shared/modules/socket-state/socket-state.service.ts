@@ -29,8 +29,23 @@ export class SocketStateService {
      }
 
      getAll(): Socket[] {
-          return Object.entries(this.sockets).reduce<Socket[]>((all, [key, value]) => {
-               return [...all, ...value]
+          return Object.entries(this.sockets).reduce<Socket[]>((all, [userId, sockets]) => {
+               return [...all, ...sockets]
+          }, [])
+     }
+
+     getSocketsInRoom(room: string, excludeMySocketId?: string) {
+          return Object.entries(this.sockets).reduce<Socket[]>((all, [userId, allSockets]) => {
+               let socketsInRoom: Socket[] = []
+
+               const sockets = allSockets.filter(s => s.id !== excludeMySocketId)
+               for (const socket of sockets) {
+                    if (socket.rooms.has(room)) {
+                         socketsInRoom.push(socket)
+                    }
+               }
+
+               return [...all, ...(socketsInRoom.length ? socketsInRoom : [])]
           }, [])
      }
 }
