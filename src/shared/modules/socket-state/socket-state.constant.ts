@@ -1,0 +1,1 @@
+export const SOCKET_STATE_TOKEN = 'SOCKET_STATE_TOKEN'

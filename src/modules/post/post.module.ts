@@ -10,9 +10,11 @@ import { PostLikeEntity } from './entities/post-like.entity';
 import { CommentEntity } from './entities/comment.entity';
 import { CommentLikeEntity } from './entities/comment-like.entity';
 import { SavedPostEntity } from './entities/saved-post.entity';
+import { RedisEmitterModule } from '../../shared/modules/redis-emitter/redis-emitter.module';
+import { SocketStateModule } from 'src/shared/modules/socket-state/socket-state.module';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([PostEntity, PostMediaEntity, PostLikeEntity, CommentEntity, CommentLikeEntity, SavedPostEntity]), FollowerModule],
+  imports: [TypeOrmModule.forFeature([PostEntity, PostMediaEntity, PostLikeEntity, CommentEntity, CommentLikeEntity, SavedPostEntity]), FollowerModule, RedisEmitterModule, SocketStateModule],
   controllers: [PostController],
   providers: [PostService, PostGateway]
 })

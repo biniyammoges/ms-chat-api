@@ -1,0 +1,1 @@
+export const getPostRoom = (id: string) => `post:${id}`

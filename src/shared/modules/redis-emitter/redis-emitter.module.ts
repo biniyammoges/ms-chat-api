@@ -4,7 +4,7 @@ import { RedisModule } from "../redis/redis.module";
 import { SocketStateModule } from "../socket-state/socket-state.module";
 
 @Module({
-     imports: [RedisModule, SocketStateModule],
+     imports: [SocketStateModule, RedisModule],
      providers: [RedisEmitterService],
      exports: [RedisEmitterService]
 })

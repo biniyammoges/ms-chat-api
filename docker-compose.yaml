@@ -2,7 +2,8 @@ version: '3.8'
 
 services:
   #database service
-  mysql:
+  mysqldb:
+    container_name: mysqldb
     image: mysql:8.0
     ports:
       - 3306:3306
@@ -13,7 +14,7 @@ services:
       MYSQL_ROOT_PASSWORD: 'password'
     volumes:
       - mysql:/var/lib/mysql
-    restart: always
+    restart: unless-stopped
 
   #phpmyadmin service
   phpmyadmin:
@@ -28,6 +29,7 @@ services:
 
   #redis service
   redis:
+    container_name: redis
     image: redis:5
     networks:
       - api-network
@@ -41,12 +43,12 @@ services:
     networks:
       - api-network
     ports:
-      - 3000:3000
+      - 3001:3001
     command: npm run start:dev
     env_file:
       - .env
     depends_on:
-      - mysql
+      - mysqldb
       - redis
     volumes:
       - .:/app

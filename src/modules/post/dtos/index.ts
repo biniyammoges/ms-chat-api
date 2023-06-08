@@ -3,3 +3,7 @@ export * from "./create-post.dto"
 export * from "./like-post.dto"
 export * from "./comment-id.dto"
 export * from "./post-id.dto"
+export * from './join-post-room.dto'
+export * from './save-post-status.dto'
+export * from './update-comment.dto'
+export * from './update-post.dto'

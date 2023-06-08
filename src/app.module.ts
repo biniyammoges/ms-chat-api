@@ -1,4 +1,4 @@
-import { Module } from '@nestjs/common';
+import { MiddlewareConsumer, Module, NestModule, } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
 import { globalConfig } from './config';
 import { TypeOrmModule } from '@nestjs/typeorm';
@@ -10,8 +10,11 @@ import { AppController } from './app.controller';
 import { FollowerModule } from './modules/follower/follower.module';
 import { FileModule } from './modules/file/file.module';
 import { PostModule } from './modules/post/post.module';
-import { SharedModule } from './shared/modules/shared.module';
 import './virtual-column.polyfill'
+import { SocketStateModule } from './shared/modules/socket-state/socket-state.module';
+import { RedisModule } from './shared/modules/redis/redis.module';
+import { RedisEmitterModule } from './shared/modules/redis-emitter/redis-emitter.module';
+import { LoggerMiddleware } from './middlewares/logger.middleware';
 
 @Module({
   imports: [
@@ -24,8 +27,13 @@ import './virtual-column.polyfill'
         const ds = await import('./typeorm.ds');
         return ds.ds
       },
-    }), AuthModule, UserModule, FollowerModule, FileModule, PostModule, SharedModule],
+    }), AuthModule, UserModule, FollowerModule, FileModule, PostModule, RedisModule, RedisEmitterModule, SocketStateModule],
   controllers: [AppController],
-  // providers: [{ provide: APP_GUARD, useValue: JwtAuthGuard }]
+  providers: [{ provide: APP_GUARD, useValue: JwtAuthGuard },],
+  exports: []
 })
-export class AppModule { }
+export class AppModule implements NestModule {
+  configure(consumer: MiddlewareConsumer): void {
+    consumer.apply(LoggerMiddleware).forRoutes('*');
+  }
+}

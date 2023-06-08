@@ -1,26 +1,35 @@
 import { BadRequestException, Injectable, Logger, NotFoundException } from '@nestjs/common';
 import { InjectEntityManager } from '@nestjs/typeorm';
-import { EntityManager, UpdateResult } from 'typeorm';
+import { EntityManager, } from 'typeorm';
 
 import { PostEntity } from './entities/post.entity';
 import { FollowerService } from '../follower/follower.service';
-import { PaginationDto, PaginationEntity } from '../../shared';
+import { PaginationDto, PaginationEntity, SocketPostEvents, getPostRoom } from '../../shared';
 
 import { PostLikeEntity } from './entities/post-like.entity';
 import { CommentEntity } from './entities/comment.entity';
 import { CommentLikeEntity } from './entities/comment-like.entity';
 
-import { PostIdDto, CreateCommentDto, CreatePostDto, CommentIdDto, CreatePostMediaDto } from './dtos/';
+import { PostIdDto, CreateCommentDto, CreatePostDto, CommentIdDto, } from './dtos/';
 import { SavedPostEntity } from './entities/saved-post.entity';
 import { UpdatePostDto } from './dtos/update-post.dto';
 import { PostMediaEntity } from './entities/post-media.entity';
 import { UpdateCommentDto } from './dtos/update-comment.dto';
+import { RedisEmitterService } from '../../shared/modules/redis-emitter/redis-emitter.service';
 
 @Injectable()
 export class PostService {
-     constructor(@InjectEntityManager() private em: EntityManager, private followerService: FollowerService) { }
+     constructor(
+          @InjectEntityManager() private em: EntityManager,
+          private followerService: FollowerService,
+          private redisEmiterService: RedisEmitterService,
+     ) { }
 
      private logger = new Logger(PostService.name);
+
+     async findById(id): Promise<PostEntity> {
+          return this.em.findOneBy(PostEntity, { id })
+     }
 
      async create(data: CreatePostDto & { creatorId: string }) {
           if (!data.caption && !data.medias?.length) {
@@ -28,10 +37,6 @@ export class PostService {
           }
 
           const post = await this.em.save(this.em.create(PostEntity, data))
-
-          // const followers = await this.followerService.getFollowers(data.creatorId);
-          // TODO - emit 'new-post' to all followers 
-
           return post
      }
 
@@ -136,7 +141,13 @@ export class PostService {
                throw new BadRequestException('You already liked the post')
           else if (!unlike && !alreadyLiked) {
                // TODO - notify post creator when new post like is created
-               return this.em.save(this.em.create(PostLikeEntity, { likerId, postId: data.postId }))
+               const newLike = await this.em.save(this.em.create(PostLikeEntity, { likerId, postId: data.postId }))
+               await this.redisEmiterService.emitToRoom({
+                    data: newLike,
+                    roomId: getPostRoom(newLike.postId),
+                    event: SocketPostEvents.NEW_LIKE,
+               })
+               return newLike
           }
 
           // If like entity doesn't exist with likerId, then the user didn't liked the post before
@@ -201,7 +212,14 @@ export class PostService {
                if (!post)
                     throw new NotFoundException("Post Not Found")
 
-               comment = await this.em.create(CommentEntity, { postId: data.postId, text: data.text, commentorId })
+               comment = await this.em.save(this.em.create(CommentEntity, { postId: data.postId, text: data.text, commentorId }))
+
+               // emit event to client
+               this.redisEmiterService.emitToRoom({
+                    data: comment,
+                    event: SocketPostEvents.NEW_COMMENT,
+                    roomId: getPostRoom(data.postId),
+               })
                // TODO - notify post owner that someone has commented to their post
           }
 
@@ -211,11 +229,11 @@ export class PostService {
                if (!parentComment)
                     throw new NotFoundException('Comment Not Found')
 
-               comment = await this.em.create(CommentEntity, { parentCommentId: data.parentCommentId, text: data.text, commentorId })
+               comment = await this.em.save(this.em.create(CommentEntity, { parentCommentId: data.parentCommentId, text: data.text, commentorId }))
                // TODO - notify comment owner that someone has replied to their comment
           }
 
-          return this.em.save(comment)
+          return comment
      }
 
      async retrieveComments(data: PostIdDto, filter: PaginationDto = { page: 1, limit: 15 }): Promise<PaginationEntity<CommentEntity>> {

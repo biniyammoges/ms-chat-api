@@ -90,7 +90,7 @@ export class AuthService {
      }
 
      async verifyAccessToken(token: string): Promise<JwtPaylaod> {
-          return this.jwtService.verifyAsync(token)
+          return this.jwtService.verifyAsync(token, { secret: process.env.ACCESS_TOKEN_SECRET })
      }
 
      private async updateRefreshToken(id: string, refreshToken: string) {
