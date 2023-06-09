@@ -10,5 +10,5 @@ export class UserDto {
      website?: string;
      avatar?: File;
      avatarId?: string;
-     birthDate: Date;
+     birthDate?: Date;
 };

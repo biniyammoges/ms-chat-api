@@ -10,12 +10,17 @@ import { PostLikeEntity } from './entities/post-like.entity';
 import { CommentEntity } from './entities/comment.entity';
 import { CommentLikeEntity } from './entities/comment-like.entity';
 
-import { PostIdDto, CreateCommentDto, CreatePostDto, CommentIdDto, } from './dtos/';
+import { PostIdDto, CreateCommentDto, CreatePostDto, CommentIdDto, BaseCommentDto, } from './dtos/';
 import { SavedPostEntity } from './entities/saved-post.entity';
 import { UpdatePostDto } from './dtos/update-post.dto';
 import { PostMediaEntity } from './entities/post-media.entity';
 import { UpdateCommentDto } from './dtos/update-comment.dto';
 import { RedisEmitterService } from '../../shared/modules/redis-emitter/redis-emitter.service';
+import { UserService } from '../user/user.service';
+import { PostTransformer } from './transformers/post.transformer';
+import { BasePostDto } from './dtos/base-post.dto';
+import { UserEntity } from '../user/entities/user.entity';
+import { CommentTransformer } from './transformers/comment.transformer';
 
 @Injectable()
 export class PostService {
@@ -23,6 +28,9 @@ export class PostService {
           @InjectEntityManager() private em: EntityManager,
           private followerService: FollowerService,
           private redisEmiterService: RedisEmitterService,
+          private userService: UserService,
+          private postTransformer: PostTransformer,
+          private commentTransformer: CommentTransformer,
      ) { }
 
      private logger = new Logger(PostService.name);
@@ -31,13 +39,34 @@ export class PostService {
           return this.em.findOneBy(PostEntity, { id })
      }
 
-     async create(data: CreatePostDto & { creatorId: string }) {
+     /**
+      * 
+      * @param postCreatorUsername - username of post creator to find followers bt his username
+      * @param postData - post data that will be sent to client
+      */
+     async notifyFollowers(postCreatorUsername: string, newPost: BasePostDto) {
+          const followers = await this.followerService.getFollowers(postCreatorUsername)
+
+          for (const follower of followers.data) {
+               await this.redisEmiterService.emitToOne({
+                    data: newPost,
+                    event: SocketPostEvents.NEW_POST,
+                    userId: follower.followerId
+               })
+          }
+     }
+
+     async create(data: CreatePostDto & { creatorId: string, creatorUsername: string }) {
           if (!data.caption && !data.medias?.length) {
                throw new BadRequestException("Both caption and files can't be empty")
           }
 
           const post = await this.em.save(this.em.create(PostEntity, data))
-          return post
+          const postDto = this.postTransformer.entityToDto(post);
+          postDto.creator = await this.userService.findUserById(data.creatorId);
+
+          await this.notifyFollowers(data.creatorUsername, postDto)
+          return postDto
      }
 
      async updatePost(postId: string, data: UpdatePostDto, updaterId: string): Promise<PostEntity> {
@@ -103,6 +132,8 @@ export class PostService {
                .orWhere("creator.id = :fetchorId", { fetchorId })
                .loadRelationCountAndMap('p.commentCount', 'p.comments')
                .loadRelationCountAndMap('p.likeCount', 'p.likes')
+               .leftJoinAndSelect('p.medias', 'medias')
+               .leftJoinAndSelect('medias.file', 'file')
                .orderBy("p.createdAt", "DESC")
                .limit(filter.limit)
                .skip((filter.page - 1) * filter.limit)
@@ -116,6 +147,8 @@ export class PostService {
                .where("p.creatorId = :myId", { myId })
                .loadRelationCountAndMap('p.commentCount', 'p.comments')
                .loadRelationCountAndMap('p.likeCount', 'p.likes')
+               .leftJoinAndSelect('p.medias', 'medias')
+               .leftJoinAndSelect('medias.file', 'file')
                .orderBy("p.createdAt", "DESC")
                .limit(filter.limit)
                .skip((filter.page - 1) * filter.limit)
@@ -203,7 +236,7 @@ export class PostService {
           return new PaginationEntity({ data: likes, total })
      }
 
-     async createComment(data: CreateCommentDto, commentorId: string): Promise<CommentEntity> {
+     async createComment(data: CreateCommentDto, user: UserEntity): Promise<BaseCommentDto> {
           let comment: CommentEntity;
 
           // there is postId so it is comment on post
@@ -212,14 +245,9 @@ export class PostService {
                if (!post)
                     throw new NotFoundException("Post Not Found")
 
-               comment = await this.em.save(this.em.create(CommentEntity, { postId: data.postId, text: data.text, commentorId }))
+               comment = await this.em.save(this.em.create(CommentEntity, { postId: data.postId, text: data.text, commentorId: user.id }))
 
-               // emit event to client
-               this.redisEmiterService.emitToRoom({
-                    data: comment,
-                    event: SocketPostEvents.NEW_COMMENT,
-                    roomId: getPostRoom(data.postId),
-               })
+
                // TODO - notify post owner that someone has commented to their post
           }
 
@@ -229,11 +257,21 @@ export class PostService {
                if (!parentComment)
                     throw new NotFoundException('Comment Not Found')
 
-               comment = await this.em.save(this.em.create(CommentEntity, { parentCommentId: data.parentCommentId, text: data.text, commentorId }))
+               comment = await this.em.save(this.em.create(CommentEntity, { parentCommentId: data.parentCommentId, text: data.text, commentorId: user.id }))
                // TODO - notify comment owner that someone has replied to their comment
           }
 
-          return comment
+          comment.commentor = user
+          const commentDto = this.commentTransformer.entityToDto(comment);
+
+          // emit event to client
+          this.redisEmiterService.emitToRoom({
+               data: commentDto,
+               event: SocketPostEvents.NEW_COMMENT,
+               roomId: getPostRoom(data.postId),
+          })
+
+          return commentDto
      }
 
      async retrieveComments(data: PostIdDto, filter: PaginationDto = { page: 1, limit: 15 }): Promise<PaginationEntity<CommentEntity>> {

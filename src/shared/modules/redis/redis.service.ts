@@ -68,16 +68,21 @@ export class RedisService {
      }
 
      consumeEmitToSelf(eventInfo: RedisEmitEventToOneDto) {
-          const { event, data, userId, socketId } = eventInfo;
-          const socket = this.socketService.get(userId).find(s => s.id === socketId);
+          const { event, data, userId, socketId: currentSocketId } = eventInfo;
+          const socket = this.socketService.get(userId).find(s => s.id === currentSocketId);
 
           if (socket)
                socket.emit(event, data)
      }
 
      consumeEmitToOne(eventInfo: RedisEmitEventToOneDto) {
-          const { event, data, userId, socketId } = eventInfo;
-          const sockets = this.socketService.get(userId).filter(s => s.id !== socketId);
+          const { event, data, userId, socketId: currentSocketId } = eventInfo;
+          let sockets = this.socketService.get(userId);
+
+          if (currentSocketId) {
+               // excludes current socketId from getting event
+               sockets = sockets.filter(s => s.id !== currentSocketId)
+          }
 
           for (const s of sockets) {
                s.emit(event, data);

@@ -19,7 +19,7 @@ export class FollowerService {
       * @param {boolean} fetchFollowers  - used to fetch followers and following
       * @returns {PaginationEntity<FollowerEntity>}
       */
-     async getFollowers(username: string, filter?: PaginationDto, fetchFollowers = true): Promise<PaginationEntity<FollowerEntity>> {
+     async getFollowers(username: string, filter: PaginationDto = {}, fetchFollowers = true): Promise<PaginationEntity<FollowerEntity>> {
           await this.userService.findUserByUsername(username)
 
           const followerQry = this.em.createQueryBuilder(FollowerEntity, 'f');
@@ -35,9 +35,9 @@ export class FollowerService {
                     .where('follower.username = :username', { username })
           }
 
-          if (filter.limit)
+          if (filter?.limit)
                followerQry.limit(filter.limit);
-          if (filter.limit && filter.page)
+          if (filter?.limit && filter?.page)
                followerQry.skip((filter.page - 1) * filter.limit)
 
           const [followers, total] = await followerQry

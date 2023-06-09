@@ -22,7 +22,7 @@ export class CommentEntity extends AbstractEntity {
 
      @ManyToOne(() => UserEntity)
      @JoinColumn({ name: "commentorId" })
-     commentor?: CommentEntity
+     commentor?: UserEntity
 
      @Column()
      text: string

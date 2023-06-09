@@ -5,7 +5,7 @@ export class RedisEmitEventDto {
 
 export class RedisEmitEventToOneDto extends RedisEmitEventDto {
      readonly userId: string;
-     readonly socketId: string;
+     readonly socketId?: string;
 }
 
 export class RedisEmitRoomEventDto extends RedisEmitEventDto {

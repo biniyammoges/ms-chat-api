@@ -4,11 +4,12 @@ import { FollowerService } from './follower.service';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { FollowerEntity } from './entities/follower.entity';
 import { UserModule } from '../user/user.module';
+import { FollowerTransformer } from './transformers/follower.transformer';
 
 @Module({
   imports: [TypeOrmModule.forFeature([FollowerEntity]), UserModule],
   controllers: [FollowerController],
-  providers: [FollowerService],
-  exports: [FollowerService]
+  providers: [FollowerService, FollowerTransformer],
+  exports: [FollowerService, FollowerTransformer]
 })
 export class FollowerModule { }

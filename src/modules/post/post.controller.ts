@@ -1,29 +1,33 @@
 import { Body, Controller, Delete, Get, Param, Post, Put, Query, UseGuards } from '@nestjs/common';
 import { PostService } from './post.service';
 import { JwtAuthGuard } from '../auth/guards/at.guard';
-import { CreatePostDto, CommentIdDto, LikeStatusDto, PostIdDto, CreateCommentDto } from './dtos';
+import { CreatePostDto, CommentIdDto, LikeStatusDto, PostIdDto, CreateCommentDto, BasePostDto, BasePostLikeDto, BaseCommentDto } from './dtos';
 import { GetUser, PaginationEntity } from '../../shared';
 
-import { PostEntity } from './entities/post.entity';
-import { PostLikeEntity } from './entities/post-like.entity';
-import { CommentEntity } from './entities/comment.entity';
 import { SavePostStatusDto } from './dtos/save-post-status.dto';
 import { UpdatePostDto } from './dtos/update-post.dto';
-import { UpdateResult } from 'typeorm';
 import { UpdateCommentDto } from './dtos/update-comment.dto';
+import { UserEntity } from '../user/entities/user.entity';
+import { PostTransformer } from './transformers/post.transformer';
+import { PostLikeTransformer } from './transformers/like.transformer';
+import { CommentTransformer } from './transformers/comment.transformer';
 
 @Controller()
 @UseGuards(JwtAuthGuard)
 export class PostController {
-  constructor(private readonly postService: PostService) { }
+  constructor(private readonly postService: PostService,
+    private postTransformer: PostTransformer,
+    private postLikeTransformer: PostLikeTransformer,
+    private commentTransformer: CommentTransformer,
+  ) { }
 
   @Post('post/create')
-  async create(@Body() data: CreatePostDto, @GetUser('id') creatorId: string) {
-    return this.postService.create({ ...data, creatorId })
+  async create(@Body() data: CreatePostDto, @GetUser() user: UserEntity) {
+    return this.postService.create({ ...data, creatorId: user.id, creatorUsername: user.username })
   }
 
   @Put('post/:postId/update')
-  async updatePost(@GetUser('id') updaterId: string, @Body() updatePostDto: UpdatePostDto, @Param() postIdDto: PostIdDto): Promise<PostEntity> {
+  async updatePost(@GetUser('id') updaterId: string, @Body() updatePostDto: UpdatePostDto, @Param() postIdDto: PostIdDto): Promise<BasePostDto> {
     return this.postService.updatePost(postIdDto.postId, updatePostDto, updaterId)
   }
 
@@ -33,13 +37,15 @@ export class PostController {
   }
 
   @Get('post/retrieve/feed')
-  async retrievePosts(@GetUser('id') fetcherId: string, @Query('limit') limit: number = 20, @Query('page') page: number = 1): Promise<PaginationEntity<PostEntity>> {
-    return this.postService.retrievePosts(fetcherId, { limit, page })
+  async retrievePosts(@GetUser('id') fetcherId: string, @Query('limit') limit: number = 20, @Query('page') page: number = 1): Promise<PaginationEntity<BasePostDto>> {
+    const { data: posts, total } = await this.postService.retrievePosts(fetcherId, { limit, page })
+    return { data: posts.map(post => this.postTransformer.entityToDto(post)), total }
   }
 
   @Get('post/retrieve/me')
-  async retrieveMyPosts(@GetUser('id') id: string, @Query('limit') limit: number = 20, @Query('page') page: number = 1): Promise<PaginationEntity<PostEntity>> {
-    return this.postService.retrieveMyPosts(id, { limit, page })
+  async retrieveMyPosts(@GetUser('id') id: string, @Query('limit') limit: number = 20, @Query('page') page: number = 1): Promise<PaginationEntity<BasePostDto>> {
+    const { data: posts, total } = await this.postService.retrieveMyPosts(id, { limit, page })
+    return { data: posts.map(post => this.postTransformer.entityToDto(post)), total }
   }
 
   @Get('post/:postId/like')
@@ -48,8 +54,9 @@ export class PostController {
   }
 
   @Get('post/:postId/likes')
-  async retrievePostLikes(@Param() postIdDto: PostIdDto, @Query('limit') limit: number = 20, @Query('page') page: number = 1): Promise<PaginationEntity<PostLikeEntity>> {
-    return this.postService.retrievePostLikes(postIdDto, { limit, page })
+  async retrievePostLikes(@Param() postIdDto: PostIdDto, @Query('limit') limit: number = 20, @Query('page') page: number = 1): Promise<PaginationEntity<BasePostLikeDto>> {
+    const { data: likes, total } = await this.postService.retrievePostLikes(postIdDto, { limit, page })
+    return { data: likes.map(like => this.postLikeTransformer.entityToDto(like)), total }
   }
 
   @Get('post/:postId/save')
@@ -58,8 +65,8 @@ export class PostController {
   }
 
   @Post('comment/create')
-  async createComment(@GetUser('id') commentorId: string, @Body() commentDto: CreateCommentDto) {
-    return this.postService.createComment(commentDto, commentorId)
+  async createComment(@GetUser() user: UserEntity, @Body() commentDto: CreateCommentDto): Promise<BaseCommentDto> {
+    return this.postService.createComment(commentDto, user)
   }
 
   @Get('comment/:commentId/like')
@@ -68,13 +75,15 @@ export class PostController {
   }
 
   @Get('post/:postId/comments')
-  async retrieveComments(@Param() postIdDto: PostIdDto, @Query('limit') limit: number = 20, @Query('page') page: number = 1): Promise<PaginationEntity<CommentEntity>> {
-    return this.postService.retrieveComments(postIdDto, { limit, page })
+  async retrieveComments(@Param() postIdDto: PostIdDto, @Query('limit') limit: number = 20, @Query('page') page: number = 1): Promise<PaginationEntity<BaseCommentDto>> {
+    const { data: comments, total } = await this.postService.retrieveComments(postIdDto, { limit, page })
+    return { data: comments.map(comment => this.commentTransformer.entityToDto(comment)), total }
   }
 
   @Get('comment/:commentId/retrieve')
-  async retrieveCommentReplies(@Param() commentIdDto: CommentIdDto, @Query('limit') limit: number = 20, @Query('page') page: number = 1): Promise<PaginationEntity<CommentEntity>> {
-    return this.postService.retrieveCommentReplies(commentIdDto, { limit, page })
+  async retrieveCommentReplies(@Param() commentIdDto: CommentIdDto, @Query('limit') limit: number = 20, @Query('page') page: number = 1): Promise<PaginationEntity<BaseCommentDto>> {
+    const { data: replies, total } = await this.postService.retrieveCommentReplies(commentIdDto, { limit, page })
+    return { data: replies.map(comment => this.commentTransformer.entityToDto(comment)), total }
   }
 
   @Put('comment/:commentId/update')
