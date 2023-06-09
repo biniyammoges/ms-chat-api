@@ -1,8 +1,8 @@
 import { ArgumentsHost, Catch, HttpException } from "@nestjs/common";
 import { BaseWsExceptionFilter, WsException } from "@nestjs/websockets";
 import { SocketEvents } from "../shared";
-import { RedisEmitterService } from "src/shared/modules/redis-emitter/redis-emitter.service";
-import { AuthSocket } from "src/shared/modules/socket-state/socket.adapter";
+import { RedisEmitterService } from "../shared/modules/redis-emitter/redis-emitter.service";
+import { AuthSocket } from "../shared/modules/socket-state/socket.adapter";
 
 @Catch(WsException, HttpException)
 export class WebsocketExceptionsFilter extends BaseWsExceptionFilter {
