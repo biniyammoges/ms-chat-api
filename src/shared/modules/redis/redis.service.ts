@@ -30,20 +30,14 @@ export class RedisService {
                this.redisSubscriber.on('message', (channel, message) => {
                     let data = JSON.parse(message)
 
-                    if (channel === event && event === REDIS_EMIT_TO_ALL) {
+                    if (channel === event && event === REDIS_EMIT_TO_ALL)
                          this.consumeEmitToAll(data)
-                    }
-                    else if (channel === event && event === REDIS_EMIT_TO_SELF) {
+                    else if (channel === event && event === REDIS_EMIT_TO_SELF)
                          this.consumeEmitToSelf(data)
-                    }
-
-                    else if (channel === event && event === REDIS_EMIT_TO_ONE) {
+                    else if (channel === event && event === REDIS_EMIT_TO_ONE)
                          this.consumeEmitToOne(data)
-                    }
-
-                    else if (channel === event && event === REDIS_EMIT_TO_ROOM) {
+                    else if (channel === event && event === REDIS_EMIT_TO_ROOM)
                          this.consumeEmitToRoom(data)
-                    }
 
                     resolve(JSON.parse(message))
                })

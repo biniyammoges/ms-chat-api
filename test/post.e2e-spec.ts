@@ -34,10 +34,10 @@ describe("Post module", () => {
 
           it("/post/create - (POST) - should create post with media", async () => {
                await client.login()
-               const body: CreatePostDto = { caption: "caption created!", medias: [{ fileId: fileFixtures.file2.id }] }
+               const body: CreatePostDto = { caption: "caption created!", medias: [{ fileId: fileFixtures.file3.id }] }
                const res = await client.requestApi<CreatePostDto, PostEntity>("/post/create", { method: "post", body })
                expect(res.caption).toBe("caption created!")
-               expect(res.medias[0].fileId).toBe(fileFixtures.file2.id)
+               expect(res.medias[0].fileId).toBe(fileFixtures.file3.id)
           })
      })
 

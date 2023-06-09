@@ -1,8 +1,9 @@
 import { FollowerEntity } from "../../follower/entities/follower.entity";
 import { AbstractEntity } from "../../../shared/base.entity";
-import { Column, Entity, OneToMany } from "typeorm";
+import { Column, Entity, JoinColumn, OneToMany, OneToOne } from "typeorm";
 import { PostEntity } from "../../post/entities/post.entity";
 import { SavedPostEntity } from "../../post/entities/saved-post.entity";
+import { FileEntity } from "../../file/file.entity";
 
 @Entity()
 export class UserEntity extends AbstractEntity {
@@ -41,6 +42,13 @@ export class UserEntity extends AbstractEntity {
 
      @Column({ nullable: true })
      fcmToken?: string;
+
+     @Column({ nullable: true })
+     avatarId?: string;
+
+     @OneToOne(() => FileEntity)
+     @JoinColumn({ name: 'avatarId' })
+     avatar?: FileEntity
 
      @OneToMany((type) => FollowerEntity, follow => follow.followee, { onDelete: 'CASCADE' })
      followers?: FollowerEntity[]

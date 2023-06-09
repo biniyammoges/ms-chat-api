@@ -1,3 +1,5 @@
+import { BaseFileDto } from "src/modules/file/dto/base-file.dto";
+
 export class UserDto {
      id: string;
      firstName: string;
@@ -8,7 +10,7 @@ export class UserDto {
      bio?: string;
      location?: string;
      website?: string;
-     avatar?: File;
+     avatar?: BaseFileDto;
      avatarId?: string;
      birthDate?: Date;
 };

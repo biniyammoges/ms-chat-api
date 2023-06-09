@@ -21,6 +21,7 @@ import { PostTransformer } from './transformers/post.transformer';
 import { BasePostDto } from './dtos/base-post.dto';
 import { UserEntity } from '../user/entities/user.entity';
 import { CommentTransformer } from './transformers/comment.transformer';
+import { FileEntity } from '../file/file.entity';
 
 @Injectable()
 export class PostService {
@@ -56,12 +57,32 @@ export class PostService {
           }
      }
 
+     private async checkFileValidity(userId: string, fileId: string) {
+          const file = await this.em.findOne(FileEntity, { where: { id: fileId, creatorId: userId } });
+          if (!file)
+               throw new NotFoundException('File Not Found')
+
+          return file
+     }
+
+
      async create(data: CreatePostDto & { creatorId: string, creatorUsername: string }) {
           if (!data.caption && !data.medias?.length) {
                throw new BadRequestException("Both caption and files can't be empty")
           }
 
+          if (data.medias?.length) {
+               for (const m of data.medias) {
+                    await this.checkFileValidity(data.creatorId, m.fileId)
+               }
+          }
+
           const post = await this.em.save(this.em.create(PostEntity, data))
+
+          if (data.medias?.length) {
+               const postMedias = await this.em.find(PostMediaEntity, { where: { postId: post.id }, relations: { file: true } });
+               post.medias = postMedias
+          }
           const postDto = this.postTransformer.entityToDto(post);
           postDto.creator = await this.userService.findUserById(data.creatorId);
 
@@ -127,6 +148,7 @@ export class PostService {
      async retrievePosts(fetchorId: string, filter: PaginationDto) {
           const [posts, total] = await this.em.createQueryBuilder(PostEntity, 'p')
                .innerJoinAndSelect("p.creator", "creator")
+               .leftJoinAndSelect("creator.avatar", 'avatar')
                .innerJoin("creator.followers", "followers")
                .where("followers.followerId = :followerId", { followerId: fetchorId })
                .orWhere("creator.id = :fetchorId", { fetchorId })
