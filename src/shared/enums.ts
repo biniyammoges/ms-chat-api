@@ -13,3 +13,7 @@ export enum SocketPostEvents {
      LEAVE_POST_ROOM = 'leave-post-room',
      LEFT_POST_ROOM = 'left-post-room'
 }
+
+export enum NotificationSocketEvents {
+     NEW_NOTIFICATION = 'new-notification',
+}

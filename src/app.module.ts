@@ -15,6 +15,7 @@ import { SocketStateModule } from './shared/modules/socket-state/socket-state.mo
 import { RedisModule } from './shared/modules/redis/redis.module';
 import { RedisEmitterModule } from './shared/modules/redis-emitter/redis-emitter.module';
 import { LoggerMiddleware } from './middlewares/logger.middleware';
+import { NotificationModule } from './modules/notification/notification.module';
 
 @Module({
   imports: [
@@ -27,7 +28,7 @@ import { LoggerMiddleware } from './middlewares/logger.middleware';
         const ds = await import('./typeorm.ds');
         return ds.ds
       },
-    }), AuthModule, UserModule, FollowerModule, FileModule, PostModule, RedisModule, RedisEmitterModule, SocketStateModule],
+    }), AuthModule, UserModule, FollowerModule, FileModule, PostModule, RedisModule, RedisEmitterModule, SocketStateModule, NotificationModule],
   controllers: [AppController],
   providers: [{ provide: APP_GUARD, useValue: JwtAuthGuard },],
   exports: []

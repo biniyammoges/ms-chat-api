@@ -157,8 +157,8 @@ export class PostService {
                .leftJoinAndSelect('p.medias', 'medias')
                .leftJoinAndSelect('medias.file', 'file')
                .orderBy("p.createdAt", "DESC")
-               .limit(filter.limit)
                .skip((filter.page - 1) * filter.limit)
+               .limit(filter.limit)
                .getManyAndCount();
 
           return new PaginationEntity({ data: posts, total })
@@ -172,8 +172,8 @@ export class PostService {
                .leftJoinAndSelect('p.medias', 'medias')
                .leftJoinAndSelect('medias.file', 'file')
                .orderBy("p.createdAt", "DESC")
-               .limit(filter.limit)
                .skip((filter.page - 1) * filter.limit)
+               .limit(filter.limit)
                .getManyAndCount();
 
           return new PaginationEntity({ data: posts, total })
@@ -251,8 +251,8 @@ export class PostService {
                .where('like.postId = :postId', { postId: data.postId })
                .innerJoinAndSelect('like.liker', 'liker')
                .orderBy("like.createdAt", 'DESC')
-               .limit(filter.limit)
                .skip((filter.page - 1) * filter.limit)
+               .limit(filter.limit)
                .getManyAndCount();
 
           return new PaginationEntity({ data: likes, total })
@@ -306,8 +306,8 @@ export class PostService {
                .loadRelationCountAndMap('comment.likeCount', 'comment.likes')
                .loadRelationCountAndMap('comment.replyCount', 'comment.replies')
                .orderBy("comment.createdAt", 'DESC')
-               .limit(filter.limit)
                .skip((filter.page - 1) * filter.limit)
+               .limit(filter.limit)
                .getManyAndCount();
 
           return new PaginationEntity({ data: comments, total })
@@ -323,8 +323,8 @@ export class PostService {
                .loadRelationCountAndMap('comment.likeCount', 'comment.likes')
                .loadRelationCountAndMap('comment.replyCount', 'comment.replies')
                .orderBy('comment.createdAt', 'DESC')
-               .limit(filter.limit)
                .skip((filter.page - 1) * filter.limit)
+               .limit(filter.limit)
                .getManyAndCount();
 
           return new PaginationEntity({ data: comments, total })
