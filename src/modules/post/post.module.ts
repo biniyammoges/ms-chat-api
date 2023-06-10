@@ -16,12 +16,13 @@ import { UserModule } from '../user/user.module';
 import { PostTransformer } from './transformers/post.transformer';
 import { PostLikeTransformer } from './transformers/like.transformer';
 import { CommentTransformer } from './transformers/comment.transformer';
+import { NotificationModule } from '../notification/notification.module';
 
 @Module({
   imports: [
     TypeOrmModule.forFeature([
       PostEntity, PostMediaEntity, PostLikeEntity, CommentEntity, CommentLikeEntity, SavedPostEntity]),
-    FollowerModule, RedisEmitterModule, SocketStateModule, UserModule],
+    FollowerModule, RedisEmitterModule, SocketStateModule, UserModule, NotificationModule],
   controllers: [PostController],
   providers: [PostService, PostGateway, PostTransformer, PostLikeTransformer, CommentTransformer],
   exports: [PostTransformer, PostLikeTransformer, CommentTransformer]

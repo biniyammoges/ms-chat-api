@@ -49,8 +49,8 @@ export class PostController {
   }
 
   @Get('post/:postId/like')
-  async likePost(@GetUser('id') likerId: string, @Param() postIdDto: PostIdDto, @Query() likeStatusDto: LikeStatusDto) {
-    return this.postService.likePost(postIdDto, likerId, !!likeStatusDto.unlike)
+  async likePost(@GetUser() liker: UserEntity, @Param() postIdDto: PostIdDto, @Query() likeStatusDto: LikeStatusDto) {
+    return this.postService.likePost(postIdDto, liker, !!likeStatusDto.unlike)
   }
 
   @Get('post/:postId/likes')
@@ -70,8 +70,8 @@ export class PostController {
   }
 
   @Get('comment/:commentId/like')
-  async likeComment(@GetUser('id') likerId: string, @Body() commentIdDto: CommentIdDto, @Query() likeStatusDto: LikeStatusDto) {
-    return this.postService.likeComment(commentIdDto, likerId, !!likeStatusDto.unlike)
+  async likeComment(@GetUser() liker: UserEntity, @Body() commentIdDto: CommentIdDto, @Query() likeStatusDto: LikeStatusDto) {
+    return this.postService.likeComment(commentIdDto, liker, !!likeStatusDto.unlike)
   }
 
   @Get('post/:postId/comments')

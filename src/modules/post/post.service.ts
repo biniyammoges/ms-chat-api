@@ -4,7 +4,7 @@ import { EntityManager, } from 'typeorm';
 
 import { PostEntity } from './entities/post.entity';
 import { FollowerService } from '../follower/follower.service';
-import { PaginationDto, PaginationEntity, SocketPostEvents, getPostRoom } from '../../shared';
+import { PaginationDto, PaginationEntity, SocketPostEvents, getNotificationMessage, getPostRoom } from '../../shared';
 
 import { PostLikeEntity } from './entities/post-like.entity';
 import { CommentEntity } from './entities/comment.entity';
@@ -22,6 +22,8 @@ import { BasePostDto } from './dtos/base-post.dto';
 import { UserEntity } from '../user/entities/user.entity';
 import { CommentTransformer } from './transformers/comment.transformer';
 import { FileEntity } from '../file/file.entity';
+import { NotificationService } from '../notification/notification.service';
+import { NotificationType } from '../notification/entities/notification.entity';
 
 @Injectable()
 export class PostService {
@@ -32,6 +34,7 @@ export class PostService {
           private userService: UserService,
           private postTransformer: PostTransformer,
           private commentTransformer: CommentTransformer,
+          private notificationService: NotificationService
      ) { }
 
      private logger = new Logger(PostService.name);
@@ -186,22 +189,35 @@ export class PostService {
       * @param {boolean} unlike - if unlike is true, it will unlike the post
       * @returns {PostLikeEntity} - returns PostLikeEntity
       */
-     async likePost(data: PostIdDto, likerId: string, unlike = false) {
+     async likePost(data: PostIdDto, liker: UserEntity, unlike = false) {
           const post = await this.em.findOne(PostEntity, { where: { id: data.postId } })
           if (!post) throw new BadRequestException("Post Not Found")
 
-          const alreadyLiked = await this.em.findOne(PostLikeEntity, { where: { postId: data.postId, likerId } });
+          const alreadyLiked = await this.em.findOne(PostLikeEntity, { where: { postId: data.postId, likerId: liker.id } });
 
           if (!unlike && alreadyLiked)
                throw new BadRequestException('You already liked the post')
           else if (!unlike && !alreadyLiked) {
-               // TODO - notify post creator when new post like is created
-               const newLike = await this.em.save(this.em.create(PostLikeEntity, { likerId, postId: data.postId }))
-               await this.redisEmiterService.emitToRoom({
-                    data: newLike,
-                    roomId: getPostRoom(newLike.postId),
-                    event: SocketPostEvents.NEW_LIKE,
-               })
+               const newLike = await this.em.save(this.em.create(PostLikeEntity, { likerId: liker.id, postId: data.postId }))
+
+               // exception for user liking their own post
+               if (post.creatorId !== liker.id) {
+                    // emits socket event to all users in room
+                    await this.redisEmiterService.emitToRoom({
+                         data: newLike,
+                         roomId: getPostRoom(newLike.postId),
+                         event: SocketPostEvents.NEW_LIKE,
+                    })
+
+                    // sends realtime notification to commentor after user liking the comment
+                    await this.notificationService.sendNotification({
+                         action: `post/${data.postId}`,
+                         message: getNotificationMessage({ type: NotificationType.Like, username: liker.username }),
+                         receiverId: post.creatorId,
+                         senderId: liker.id,
+                         type: NotificationType.Like
+                    })
+               }
                return newLike
           }
 
@@ -222,17 +238,29 @@ export class PostService {
       * @param {boolean} unlike - if unlike is true, it will unlike the comment
       * @returns  - returns CommentLikeEnriry
       */
-     async likeComment(data: CommentIdDto, likerId: string, unlike = false) {
-          const comment = await this.em.findOne(CommentLikeEntity, { where: { id: data.commentId } })
+     async likeComment(data: CommentIdDto, liker: UserEntity, unlike = false) {
+          const comment = await this.em.findOne(CommentEntity, { where: { id: data.commentId } })
           if (!comment) throw new BadRequestException()
 
-          const alreadyLiked = await this.em.findOne(CommentLikeEntity, { where: { commentId: data.commentId, likerId } });
+          const alreadyLiked = await this.em.findOne(CommentLikeEntity, { where: { commentId: data.commentId, likerId: liker.id } });
 
           if (!unlike && alreadyLiked)
                throw new BadRequestException('You already liked the post')
           else if (!unlike && !alreadyLiked) {
-               // TODO - notify comment owner when new comment like created
-               return this.em.save(this.em.create(CommentLikeEntity, { likerId, commentId: data.commentId }))
+               const newLike = await this.em.save(this.em.create(CommentLikeEntity, { likerId: liker.id, commentId: data.commentId }))
+
+               // sends realtime notification to commentor after user liking the comment
+               // exception for user liking their own comment
+               if (data.commentId !== liker.id) {
+                    await this.notificationService.sendNotification({
+                         action: `post/${comment.postId}`,
+                         message: getNotificationMessage({ type: NotificationType.CommentLike, username: liker.username }),
+                         receiverId: comment.commentorId,
+                         senderId: liker.id,
+                         type: NotificationType.CommentLike
+                    })
+               }
+               return newLike
           }
 
           // If like entity doesn't exist with likerId, then the user didn't liked the post before
@@ -270,7 +298,17 @@ export class PostService {
                comment = await this.em.save(this.em.create(CommentEntity, { postId: data.postId, text: data.text, commentorId: user.id }))
 
 
-               // TODO - notify post owner that someone has commented to their post
+               // sends realtime notification to post creator saying that someone has commented on his/her post
+               // exception for user commenting on their own post
+               if (post.creatorId !== user.id) {
+                    await this.notificationService.sendNotification({
+                         action: `post/${comment.postId}`,
+                         message: getNotificationMessage({ type: NotificationType.Comment, username: user.username }),
+                         receiverId: post.creatorId,
+                         senderId: user.id,
+                         type: NotificationType.Comment
+                    })
+               }
           }
 
           // there is parentCommentId so it is reply to comment
@@ -280,13 +318,26 @@ export class PostService {
                     throw new NotFoundException('Comment Not Found')
 
                comment = await this.em.save(this.em.create(CommentEntity, { parentCommentId: data.parentCommentId, text: data.text, commentorId: user.id }))
-               // TODO - notify comment owner that someone has replied to their comment
+
+               // sends realtime notification to post creator saying that someone has replied to his/her comment
+               // exception for user replying to their own comment
+               if (parentComment.commentorId !== user.id) {
+                    await this.notificationService.sendNotification({
+                         action: `post/${comment.postId}`,
+                         message: getNotificationMessage({ type: NotificationType.Reply, username: user.username }),
+                         receiverId: parentComment.commentorId,
+                         senderId: user.id,
+                         type: NotificationType.Reply
+                    })
+               }
           }
 
           comment.commentor = user
           const commentDto = this.commentTransformer.entityToDto(comment);
 
-          // emit event to client
+          // emit event to client (both comment and reply)
+          // if comment has parentId, then it is reply 
+          // and if comment has postId, then it is comment on post
           this.redisEmiterService.emitToRoom({
                data: commentDto,
                event: SocketPostEvents.NEW_COMMENT,

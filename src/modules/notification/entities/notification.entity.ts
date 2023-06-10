@@ -8,6 +8,7 @@ export enum NotificationType {
      Reply = 'reply',
      Like = 'like',
      Comment = 'comment',
+     CommentLike = 'comment-like',
      Message = 'message',
      Follow = 'follow'
 }

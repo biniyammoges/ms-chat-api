@@ -3,12 +3,18 @@ import { InjectEntityManager } from '@nestjs/typeorm';
 import { DeleteResult, EntityManager } from 'typeorm';
 import { FollowerEntity } from './entities/follower.entity';
 import { UserService } from '../user/user.service';
-import { PaginationDto } from '../../shared';
+import { PaginationDto, getNotificationMessage } from '../../shared';
 import { PaginationEntity } from '../../shared';
+import { NotificationService } from '../notification/notification.service';
+import { NotificationType } from '../notification/entities/notification.entity';
 
 @Injectable()
 export class FollowerService {
-     constructor(@InjectEntityManager() private em: EntityManager, private userService: UserService) { }
+     constructor(
+          @InjectEntityManager()
+          private em: EntityManager,
+          private userService: UserService,
+          private notificationService: NotificationService) { }
 
      private readonly logger = new Logger(FollowerService.name);
 
@@ -47,20 +53,35 @@ export class FollowerService {
           return new PaginationEntity({ data: followers, total })
      }
 
-     async followUser(followerId: string, username: string): Promise<FollowerEntity> {
+     async followUser(follower: { id: string, username: string }, username: string): Promise<FollowerEntity> {
           const user = await this.userService.findUserByUsername(username);
-          const alreadyFollowing = await this.em.findOne(FollowerEntity, { where: { followerId, followeeId: user.id } });
+
+          if (follower.id === user.id)
+               throw new BadRequestException("You can't follow or unfollow yourself")
+
+          const alreadyFollowing = await this.em.findOne(FollowerEntity, { where: { followerId: follower.id, followeeId: user.id } });
 
           if (alreadyFollowing) {
                throw new BadRequestException(`You are already following ${user.firstName} ${user.lastName}`);
           }
 
-          const newFollower = await this.em.create(FollowerEntity, { followerId, followeeId: user.id });
+          const newFollower = await this.em.create(FollowerEntity, { followerId: follower.id, followeeId: user.id });
+          await this.notificationService.sendNotification({
+               action: `user/${follower.username}`,
+               message: getNotificationMessage({ type: NotificationType.Follow, username: follower.username }),
+               receiverId: user.id,
+               senderId: follower.id,
+               type: NotificationType.Follow
+          })
           return this.em.save(newFollower)
      }
 
      async unfollowUser(followerId: string, username: string): Promise<DeleteResult> {
           const user = await this.userService.findUserByUsername(username);
+          if (followerId === user.id)
+               throw new BadRequestException("You can't follow or unfollow yourself")
+
+
           const isFollowing = await this.em.findOne(FollowerEntity, { where: { followerId, followeeId: user.id } });
 
           if (!isFollowing) {

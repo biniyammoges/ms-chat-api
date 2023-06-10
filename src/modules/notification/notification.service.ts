@@ -11,7 +11,7 @@ import { NotificationSocketEvents, PaginationDto } from 'src/shared';
 export class NotificationService {
      constructor(@InjectEntityManager() private em: EntityManager, private redisEmitterService: RedisEmitterService) { }
 
-     async createNotification(data: CreateNotificationDto): Promise<NotificationEntity> {
+     async sendNotification(data: CreateNotificationDto): Promise<NotificationEntity> {
           const [notification, user] = await Promise.all([this.em.save(this.em.create(NotificationEntity, { ...data })), this.em.findOne(UserEntity, {
                where: { id: data.senderId },
                relations: { avatar: true },

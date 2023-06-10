@@ -7,6 +7,7 @@ import { PaginationEntity } from '../../shared';
 import { FollowerEntity } from './entities/follower.entity';
 import { BaseFollowerDto } from './dtos/base-follower.dto';
 import { FollowerTransformer } from './transformers/follower.transformer';
+import { UserEntity } from '../user/entities/user.entity';
 
 @Controller()
 @UseGuards(JwtAuthGuard)
@@ -28,8 +29,8 @@ export class FollowerController {
      }
 
      @Get('/follow/:username')
-     async followUser(@GetUser('id') followerId: string, @Param('username') username: string): Promise<BaseFollowerDto> {
-          return this.followerService.followUser(followerId, username)
+     async followUser(@GetUser() follower: UserEntity, @Param('username') username: string): Promise<BaseFollowerDto> {
+          return this.followerService.followUser({ id: follower.id, username: follower.username }, username)
      }
 
      @Get('/unfollow/:username')
