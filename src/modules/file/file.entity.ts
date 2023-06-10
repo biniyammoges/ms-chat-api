@@ -32,5 +32,8 @@ export class FileEntity extends AbstractEntity {
 
      @OneToOne(() => PostMediaEntity, pm => pm.file, { onDelete: "CASCADE" })
      postMedia?: PostMediaEntity
+
+     @OneToOne(() => UserEntity, u => u.avatar, { onDelete: "SET NULL" })
+     avatar?: UserEntity
 }
 

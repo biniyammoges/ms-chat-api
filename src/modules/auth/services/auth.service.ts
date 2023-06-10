@@ -25,7 +25,7 @@ export class AuthService {
                     id: payload.sub,
                     email: payload.email,
                     ...(isRefresh && { refreshToken: Not(IsNull()) })
-               }
+               },
           })
 
           if (!user) throw new UnauthorizedException('Invalid or expired token');
@@ -75,7 +75,7 @@ export class AuthService {
      }
 
      async getMe(userId: string): Promise<UserDto> {
-          const user = await this.em.findOne(UserEntity, { where: { id: userId } });
+          const user = await this.em.findOne(UserEntity, { where: { id: userId }, relations: { avatar: true } });
           if (!user) {
                throw new UnauthorizedException()
           }

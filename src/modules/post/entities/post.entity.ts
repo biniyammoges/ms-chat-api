@@ -26,13 +26,13 @@ export class PostEntity extends AbstractEntity {
      })
      medias: PostMediaEntity[]
 
-     @OneToMany(() => PostLikeEntity, (like) => like.post, { onDelete: "CASCADE" })
+     @OneToMany(() => PostLikeEntity, (like) => like.post, { onDelete: "CASCADE", onUpdate: 'CASCADE' })
      likes: PostLikeEntity[]
 
-     @OneToMany(() => CommentEntity, cm => cm.post, { onDelete: "CASCADE" })
+     @OneToMany(() => CommentEntity, cm => cm.post, { onDelete: "CASCADE", onUpdate: 'CASCADE' })
      comments: CommentEntity[]
 
-     @OneToMany(() => SavedPostEntity, sp => sp.post, { onDelete: "CASCADE" })
+     @OneToMany(() => SavedPostEntity, sp => sp.post, { onDelete: "CASCADE", onUpdate: 'CASCADE' })
      savedUsers: SavedPostEntity[]
 
      @VirtualColumn()

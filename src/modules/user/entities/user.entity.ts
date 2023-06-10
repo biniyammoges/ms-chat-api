@@ -46,7 +46,7 @@ export class UserEntity extends AbstractEntity {
      @Column({ nullable: true })
      avatarId?: string;
 
-     @OneToOne(() => FileEntity)
+     @OneToOne(() => FileEntity, { onDelete: "CASCADE", onUpdate: "CASCADE" })
      @JoinColumn({ name: 'avatarId' })
      avatar?: FileEntity
 

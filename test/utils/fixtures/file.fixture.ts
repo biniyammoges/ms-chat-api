@@ -39,6 +39,18 @@ export const fileFixtures = {
           id: '30219203-1db0-4a64-be5f-4bc5c243e847',
           createdAt: '2023-06-09T12:21:29.661Z',
           updatedAt: '2023-06-09T12:21:29.661Z'
+     }),
+     file4: fixture(FileEntity, {
+          name: 'image.png-1686384637861',
+          size: 79945,
+          type: 'upload',
+          path: 'test_uploads/bpzbkplavktspy0hlyqv',
+          url: 'http://res.cloudinary.com/degfzcl69/image/upload/v1686384640/test_uploads/bpzbkplavktspy0hlyqv.png',
+          privateUrl: 'https://res.cloudinary.com/degfzcl69/image/upload/v1686384640/test_uploads/bpzbkplavktspy0hlyqv.png',
+          creatorId: '051ee4bc-df0f-494a-961b-0591f8d6694e',
+          id: '0847b215-8fbb-4a0c-9a08-07b7db29b7f6',
+          createdAt: '2023-06-10T05:10:40.790Z',
+          updatedAt: '2023-06-10T05:10:40.790Z'
      })
 }
 

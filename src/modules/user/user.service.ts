@@ -1,6 +1,6 @@
-import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
+import { BadRequestException, Injectable, Logger, NotFoundException } from '@nestjs/common';
 import { InjectEntityManager, InjectRepository } from '@nestjs/typeorm';
-import { EntityManager, Repository } from 'typeorm';
+import { EntityManager, Repository, RelationOptions, Relation, FindOptionsRelations } from 'typeorm';
 import { UserEntity } from './entities/user.entity';
 import { UserTransformer } from './transformer/user.transformer';
 import { UserDto } from './dtos/user.dto';
@@ -17,8 +17,10 @@ export class UserService {
           private em: EntityManager
      ) { }
 
-     async findUserById(id: string): Promise<UserDto> {
-          const user = await this.userRepo.findOne({ where: { id }, relations: { avatar: true } },);
+     private logger = new Logger(UserService.name)
+
+     async findUserById(id: string, relations: FindOptionsRelations<UserEntity> = {}): Promise<UserDto> {
+          const user = await this.userRepo.findOne({ where: { id }, relations });
           if (!user) {
                throw new BadRequestException('User not found with provided id')
           }
@@ -45,8 +47,24 @@ export class UserService {
 
      async uploadAvatar(userId: string, data: UploadAvatarDto) {
           const file = await this.checkFileValidity(userId, data.fileId);
+          const user = await this.findUserById(userId)
 
-          await this.em.update(UserEntity, { id: userId }, { avatarId: data.fileId });
-          return file
+          const runner = await this.em.connection.createQueryRunner()
+          await runner.connect()
+          await runner.startTransaction()
+
+          try {
+               await runner.manager.update(UserEntity, { id: userId }, { avatarId: data.fileId });
+               if (user.avatarId) {
+                    await runner.manager.delete(FileEntity, { id: user.avatarId })
+               }
+               await runner.commitTransaction()
+               return file
+          } catch (err) {
+               this.logger.error(err)
+               await runner.rollbackTransaction()
+          } finally {
+               await runner.release()
+          }
      }
 }
