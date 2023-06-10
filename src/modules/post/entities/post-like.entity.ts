@@ -9,14 +9,14 @@ export class PostLikeEntity extends AbstractEntity {
      @Column()
      likerId: string
 
-     @ManyToOne(() => UserEntity)
+     @ManyToOne(() => UserEntity, { onDelete: "CASCADE", onUpdate: 'CASCADE' })
      @JoinColumn({ name: "likerId" })
      liker?: UserEntity
 
      @Column()
      postId: string
 
-     @ManyToOne(() => PostEntity)
+     @ManyToOne(() => PostEntity, { onDelete: "CASCADE", onUpdate: 'CASCADE' })
      @JoinColumn({ name: "postId" })
      post?: PostEntity
 }

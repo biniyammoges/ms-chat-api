@@ -9,14 +9,14 @@ export class SavedPostEntity extends AbstractEntity {
      @Column()
      userId: string
 
-     @ManyToOne(() => UserEntity)
+     @ManyToOne(() => UserEntity, { onDelete: "CASCADE", onUpdate: 'CASCADE' })
      @JoinColumn({ name: "userId" })
      user?: UserEntity
 
      @Column()
      postId: string
 
-     @ManyToOne(() => PostEntity)
+     @ManyToOne(() => PostEntity, { onDelete: "CASCADE", onUpdate: 'CASCADE' })
      @JoinColumn({ name: "postId" })
      post?: PostEntity
 }

@@ -9,14 +9,14 @@ export class CommentLikeEntity extends AbstractEntity {
      @Column()
      likerId: string
 
-     @ManyToOne(() => UserEntity)
+     @ManyToOne(() => UserEntity, { onDelete: "CASCADE", onUpdate: 'CASCADE' })
      @JoinColumn({ name: "likerId" })
      liker?: UserEntity
 
      @Column()
      commentId: string
 
-     @ManyToOne(() => CommentEntity)
+     @ManyToOne(() => CommentEntity, { onDelete: "CASCADE", onUpdate: 'CASCADE' })
      @JoinColumn({ name: "commentId" })
      comment?: CommentEntity
 }

@@ -46,20 +46,20 @@ export class UserEntity extends AbstractEntity {
      @Column({ nullable: true })
      avatarId?: string;
 
-     @OneToOne(() => FileEntity, { onDelete: "CASCADE", onUpdate: "CASCADE" })
+     @OneToOne(() => FileEntity, { onDelete: 'SET NULL' })
      @JoinColumn({ name: 'avatarId' })
      avatar?: FileEntity
 
-     @OneToMany((type) => FollowerEntity, follow => follow.followee, { onDelete: 'CASCADE' })
+     @OneToMany((type) => FollowerEntity, follow => follow.followee,)
      followers?: FollowerEntity[]
 
-     @OneToMany((type) => FollowerEntity, follow => follow.follower, { onDelete: 'CASCADE' })
+     @OneToMany((type) => FollowerEntity, follow => follow.follower,)
      followings?: FollowerEntity[]
 
-     @OneToMany((type) => PostEntity, post => post.creator, { onDelete: "CASCADE" })
+     @OneToMany((type) => PostEntity, post => post.creator,)
      posts: PostEntity[]
 
-     @OneToMany(() => SavedPostEntity, sp => sp.user, { onDelete: "CASCADE" })
+     @OneToMany(() => SavedPostEntity, sp => sp.user,)
      savedPosts: SavedPostEntity[]
 
      followerCount?: number

@@ -10,17 +10,17 @@ export class CommentEntity extends AbstractEntity {
      @Column('uuid', { nullable: true })
      parentCommentId: string;
 
-     @ManyToOne(() => CommentEntity, cm => cm.replies, { onDelete: "CASCADE" })
+     @ManyToOne(() => CommentEntity, cm => cm.replies, { onDelete: "CASCADE", onUpdate: 'CASCADE' })
      @JoinColumn({ name: "parentCommentId" })
      parentComment?: CommentEntity
 
-     @OneToMany(() => CommentEntity, cm => cm.parentComment)
+     @OneToMany(() => CommentEntity, cm => cm.parentComment,)
      replies: CommentEntity[]
 
      @Column('uuid')
      commentorId: string
 
-     @ManyToOne(() => UserEntity)
+     @ManyToOne(() => UserEntity, { onDelete: "CASCADE", onUpdate: 'CASCADE' })
      @JoinColumn({ name: "commentorId" })
      commentor?: UserEntity
 
@@ -30,11 +30,11 @@ export class CommentEntity extends AbstractEntity {
      @Column('uuid', { nullable: true })
      postId: string
 
-     @ManyToOne(() => PostEntity)
+     @ManyToOne(() => PostEntity, { onDelete: "CASCADE", onUpdate: 'CASCADE' })
      @JoinColumn({ name: "postId" })
      post?: PostEntity
 
-     @OneToMany(() => CommentLikeEntity, cm => cm.comment, { onDelete: "CASCADE" })
+     @OneToMany(() => CommentLikeEntity, cm => cm.comment,)
      likes: CommentLikeEntity[]
 
      @VirtualColumn()

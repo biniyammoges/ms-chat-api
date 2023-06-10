@@ -8,14 +8,14 @@ export class FollowerEntity extends AbstractEntity {
      @Column()
      followerId: string;
 
-     @ManyToOne(() => UserEntity)
+     @ManyToOne(() => UserEntity, { onDelete: "CASCADE", onUpdate: 'CASCADE' })
      @JoinColumn({ name: 'followerId' })
      follower?: UserEntity
 
      @Column()
      followeeId: string;
 
-     @ManyToOne(() => UserEntity)
+     @ManyToOne(() => UserEntity, { onDelete: "CASCADE", onUpdate: 'CASCADE' })
      @JoinColumn({ name: 'followeeId' })
      followee?: UserEntity
 }

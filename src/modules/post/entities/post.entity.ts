@@ -15,24 +15,23 @@ export class PostEntity extends AbstractEntity {
      @Column({ nullable: true })
      caption?: string;
 
-     @ManyToOne(() => UserEntity)
+     @ManyToOne(() => UserEntity, { onDelete: "CASCADE", onUpdate: 'CASCADE' })
      @JoinColumn({ name: "creatorId" })
      creator: UserEntity
 
      @OneToMany(() => PostMediaEntity, (pm) => pm.post, {
           cascade: true,
-          onDelete: "CASCADE",
           eager: true
      })
      medias: PostMediaEntity[]
 
-     @OneToMany(() => PostLikeEntity, (like) => like.post, { onDelete: "CASCADE", onUpdate: 'CASCADE' })
+     @OneToMany(() => PostLikeEntity, (like) => like.post)
      likes: PostLikeEntity[]
 
-     @OneToMany(() => CommentEntity, cm => cm.post, { onDelete: "CASCADE", onUpdate: 'CASCADE' })
+     @OneToMany(() => CommentEntity, cm => cm.post)
      comments: CommentEntity[]
 
-     @OneToMany(() => SavedPostEntity, sp => sp.post, { onDelete: "CASCADE", onUpdate: 'CASCADE' })
+     @OneToMany(() => SavedPostEntity, sp => sp.post)
      savedUsers: SavedPostEntity[]
 
      @VirtualColumn()

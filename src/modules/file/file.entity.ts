@@ -26,14 +26,14 @@ export class FileEntity extends AbstractEntity {
      @Column({ nullable: true })
      creatorId?: string
 
-     @ManyToOne(() => UserEntity, { onDelete: 'SET NULL' })
+     @ManyToOne(() => UserEntity, { onDelete: 'CASCADE', onUpdate: 'CASCADE' })
      @JoinColumn({ name: "creatorId", })
      creator?: UserEntity
 
      @OneToOne(() => PostMediaEntity, pm => pm.file, { onDelete: "CASCADE" })
      postMedia?: PostMediaEntity
 
-     @OneToOne(() => UserEntity, u => u.avatar, { onDelete: "SET NULL" })
+     @OneToOne(() => UserEntity, u => u.avatar)
      avatar?: UserEntity
 }
 
