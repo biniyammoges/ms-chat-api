@@ -17,3 +17,15 @@ export enum SocketPostEvents {
 export enum NotificationSocketEvents {
      NEW_NOTIFICATION = 'new-notification',
 }
+
+export enum ChatSocketEvents {
+     NewMessage = 'new-message',
+     Seen = 'seen',
+     Typing = 'typing',
+     Active = 'active',
+     Offline = 'offline',
+     JoinChatRoom = 'join-chat-room',
+     JoinedChatRoom = 'joined-chat-room',
+     leaveChatRoom = 'leave-chat-room',
+     leftChatRoom = 'left-chat-room',
+}
