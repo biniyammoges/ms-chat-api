@@ -5,7 +5,7 @@ import { CreateNotificationDto } from './dtos/create-notfication.dto';
 import { NotificationEntity } from './entities/notification.entity';
 import { RedisEmitterService } from '../../shared/modules/redis-emitter/redis-emitter.service';
 import { UserEntity } from '../user/entities/user.entity';
-import { NotificationSocketEvents, PaginationDto } from 'src/shared';
+import { NotificationSocketEvents, PaginationDto } from '../../shared';
 
 @Injectable()
 export class NotificationService {
@@ -35,7 +35,6 @@ export class NotificationService {
                .where('n.receiverId = :receiverId', { receiverId })
                .leftJoinAndSelect('n.sender', 'sender')
                .leftJoinAndSelect('sender.avatar', 'avatar')
-               .select(['sender.id', 'sender.avatar'])
                .orderBy('n.createdAt', 'DESC')
 
           if (filter.limit && filter.page) {
@@ -54,7 +53,7 @@ export class NotificationService {
           if (!notfication)
                throw new NotFoundException('Notification Not Found')
 
-          await this.em.save({ ...notfication, isRead: true });
+          await this.em.save(NotificationEntity, { ...notfication, isRead: true });
           return { isRead: true }
      }
 

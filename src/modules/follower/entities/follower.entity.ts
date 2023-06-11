@@ -5,14 +5,14 @@ import { Column, Entity, Index, JoinColumn, ManyToOne } from "typeorm";
 @Entity()
 @Index(['followerId', 'followeeId'], { unique: true })
 export class FollowerEntity extends AbstractEntity {
-     @Column()
+     @Column('uuid')
      followerId: string;
 
      @ManyToOne(() => UserEntity, { onDelete: "CASCADE", onUpdate: 'CASCADE' })
      @JoinColumn({ name: 'followerId' })
      follower?: UserEntity
 
-     @Column()
+     @Column('uuid')
      followeeId: string;
 
      @ManyToOne(() => UserEntity, { onDelete: "CASCADE", onUpdate: 'CASCADE' })

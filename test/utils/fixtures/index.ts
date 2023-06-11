@@ -1,5 +1,6 @@
 import { fileFixtures } from "./file.fixture";
 import { followerFixture } from "./followe.fixture";
+import { notificationFixtures } from "./notification.fixture";
 import { commentFixtures, postFixtures, postLikeFixtures, savedPostFixtures } from "./post.fixture";
 import { userFixtures } from "./user.fixture";
 
@@ -10,5 +11,6 @@ export const fixtures = {
      posts: postFixtures,
      postsLikes: postLikeFixtures,
      savedPosts: savedPostFixtures,
-     comments: commentFixtures
+     comments: commentFixtures,
+     ntoifications: notificationFixtures
 }

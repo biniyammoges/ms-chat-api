@@ -23,7 +23,7 @@ export class FileEntity extends AbstractEntity {
      @Column({ nullable: true })
      privateUrl?: string
 
-     @Column({ nullable: true })
+     @Column('uuid', { nullable: true })
      creatorId?: string
 
      @ManyToOne(() => UserEntity, { onDelete: 'CASCADE', onUpdate: 'CASCADE' })

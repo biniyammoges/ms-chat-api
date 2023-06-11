@@ -1,6 +1,6 @@
 import { BadRequestException, Injectable, Logger, NotFoundException } from '@nestjs/common';
 import { InjectEntityManager, InjectRepository } from '@nestjs/typeorm';
-import { EntityManager, Repository, RelationOptions, Relation, FindOptionsRelations } from 'typeorm';
+import { EntityManager, Repository, FindOptionsRelations } from 'typeorm';
 import { UserEntity } from './entities/user.entity';
 import { UserTransformer } from './transformer/user.transformer';
 import { UserDto } from './dtos/user.dto';

@@ -4,6 +4,7 @@ import { Column, Entity, JoinColumn, OneToMany, OneToOne } from "typeorm";
 import { PostEntity } from "../../post/entities/post.entity";
 import { SavedPostEntity } from "../../post/entities/saved-post.entity";
 import { FileEntity } from "../../file/file.entity";
+import { NotificationEntity } from "../../notification/entities/notification.entity";
 
 @Entity()
 export class UserEntity extends AbstractEntity {
@@ -43,7 +44,7 @@ export class UserEntity extends AbstractEntity {
      @Column({ nullable: true })
      fcmToken?: string;
 
-     @Column({ nullable: true })
+     @Column('uuid', { nullable: true })
      avatarId?: string;
 
      @OneToOne(() => FileEntity, { onDelete: 'SET NULL' })
@@ -61,6 +62,9 @@ export class UserEntity extends AbstractEntity {
 
      @OneToMany(() => SavedPostEntity, sp => sp.user,)
      savedPosts: SavedPostEntity[]
+
+     @OneToMany(() => NotificationEntity, ne => ne.receiver)
+     notifications: NotificationEntity[]
 
      followerCount?: number
      followingCount?: number

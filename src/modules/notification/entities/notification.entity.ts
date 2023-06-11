@@ -1,6 +1,6 @@
 import { AbstractEntity } from "../../../shared";
-import { Column, Entity, JoinColumn, OneToOne } from "typeorm";
-import { UserEntity } from "src/modules/user/entities/user.entity";
+import { Column, Entity, JoinColumn, ManyToOne } from "typeorm";
+import { UserEntity } from "../../user/entities/user.entity";
 
 // Notifications
 export enum NotificationType {
@@ -24,20 +24,20 @@ export class NotificationEntity extends AbstractEntity {
      @Column()
      action: string;
 
-     @Column()
+     @Column({ default: false })
      isRead: boolean
 
-     @Column()
+     @Column('uuid', { unique: false })
      receiverId: string
 
-     @OneToOne(() => UserEntity, { onDelete: 'CASCADE' })
+     @ManyToOne(() => UserEntity, { onDelete: 'CASCADE', onUpdate: 'CASCADE' })
      @JoinColumn({ name: 'receiverId' })
      receiver?: UserEntity
 
-     @Column()
+     @Column('uuid', { unique: false })
      senderId: string
 
-     @OneToOne(() => UserEntity, { onDelete: 'CASCADE' })
+     @ManyToOne(() => UserEntity, { onDelete: 'CASCADE', onUpdate: 'CASCADE' })
      @JoinColumn({ name: 'senderId' })
      sender?: UserEntity
 }

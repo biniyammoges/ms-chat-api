@@ -21,7 +21,7 @@ services:
     image: phpmyadmin/phpmyadmin:latest
     restart: always
     environment:
-      PMA_HOST: mysql
+      PMA_HOST: mysqldb
       PMA_USER: user
       PMA_PASSWORD: password
     ports:

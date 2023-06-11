@@ -3,6 +3,12 @@ import { NotificationType } from "../modules/notification/entities/notification.
 export const getPostRoom = (id: string) => `post:${id}`
 
 type ValidNotificationType = NotificationType.Comment | NotificationType.CommentLike | NotificationType.Follow | NotificationType.Like | NotificationType.Message | NotificationType.Reply
+
+/**
+ * 
+ * @param data - has type and username property where type if notificatio type and username is senders username
+ * @returns {string} - returns computed notification message
+ */
 export const getNotificationMessage = (data: { type: ValidNotificationType, username: string }) => {
      switch (data.type) {
           case NotificationType.Like:

@@ -6,14 +6,14 @@ import { PostEntity } from "./post.entity";
 @Entity()
 @Index(['likerId', 'postId'], { unique: true })
 export class PostLikeEntity extends AbstractEntity {
-     @Column()
+     @Column('uuid')
      likerId: string
 
      @ManyToOne(() => UserEntity, { onDelete: "CASCADE", onUpdate: 'CASCADE' })
      @JoinColumn({ name: "likerId" })
      liker?: UserEntity
 
-     @Column()
+     @Column('uuid')
      postId: string
 
      @ManyToOne(() => PostEntity, { onDelete: "CASCADE", onUpdate: 'CASCADE' })

@@ -6,14 +6,14 @@ import { PostEntity } from "./post.entity";
 @Entity()
 @Index(['userId', 'postId'], { unique: true })
 export class SavedPostEntity extends AbstractEntity {
-     @Column()
+     @Column('uuid')
      userId: string
 
      @ManyToOne(() => UserEntity, { onDelete: "CASCADE", onUpdate: 'CASCADE' })
      @JoinColumn({ name: "userId" })
      user?: UserEntity
 
-     @Column()
+     @Column('uuid')
      postId: string
 
      @ManyToOne(() => PostEntity, { onDelete: "CASCADE", onUpdate: 'CASCADE' })

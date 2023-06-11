@@ -40,7 +40,7 @@ export const commentFixtures = {
      comment0: fixture(CommentEntity, {
           id: "81cd7321-2e7c-4635-bb61-6d6a225e644f",
           postId: "905e6f54-791f-4098-ade9-3d9c93232951", //post1 id
-          text: "@bini remember I far u've come!",
+          text: "remember I far u've come!",
           commentorId: "051ee4bc-df0f-494a-961b-0591f8d6694e"//user0 id
      }),
      reply0: fixture(CommentEntity, {
@@ -52,13 +52,13 @@ export const commentFixtures = {
      comment1: fixture(CommentEntity, {
           id: "2d3f9b64-8746-434b-afcf-00830ff60c65",
           postId: "905e6f54-791f-4098-ade9-3d9c93232951",
-          text: "@bini hold up man",
+          text: "hold up man",
           commentorId: "051ee4bc-df0f-494a-961b-0591f8d6694e"
      }),
      comment2: fixture(CommentEntity, {
           id: "0dfe88f2-08fe-4768-8609-cb72dbe1244c",
           postId: "905e6f54-791f-4098-ade9-3d9c93232951", //post1 id
-          text: "@bini comment",
+          text: "comment",
           commentorId: "85aceae5-b868-47de-8e19-44c6e70688b0"//user1 id
      }),
 }

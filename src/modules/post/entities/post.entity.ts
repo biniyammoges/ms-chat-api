@@ -9,7 +9,7 @@ import { VirtualColumn } from "../../../decorators/virtual-column.decorator";
 
 @Entity()
 export class PostEntity extends AbstractEntity {
-     @Column()
+     @Column('uuid')
      creatorId: string;
 
      @Column({ nullable: true })
