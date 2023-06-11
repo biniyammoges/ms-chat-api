@@ -70,7 +70,7 @@ export class PostController {
   }
 
   @Get('comment/:commentId/like')
-  async likeComment(@GetUser() liker: UserEntity, @Body() commentIdDto: CommentIdDto, @Query() likeStatusDto: LikeStatusDto) {
+  async likeComment(@GetUser() liker: UserEntity, @Param() commentIdDto: CommentIdDto, @Query() likeStatusDto: LikeStatusDto) {
     return this.postService.likeComment(commentIdDto, liker, !!likeStatusDto.unlike)
   }
 

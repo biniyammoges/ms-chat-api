@@ -267,8 +267,10 @@ export class PostService {
           if (unlike && !alreadyLiked)
                throw new BadRequestException("You have to like first inorder to unlike")
           // user has already liked before so he can unlike
-          else if (unlike && alreadyLiked)
-               return alreadyLiked.remove()
+          else if (unlike && alreadyLiked) {
+               await alreadyLiked.remove()
+               return { unlike: true }
+          }
      }
 
      async retrievePostLikes(data: PostIdDto, filter: PaginationDto = { page: 1, limit: 15 }): Promise<PaginationEntity<PostLikeEntity>> {
@@ -302,7 +304,7 @@ export class PostService {
                // exception for user commenting on their own post
                if (post.creatorId !== user.id) {
                     await this.notificationService.sendNotification({
-                         action: `post/${comment.postId}`,
+                         action: `post/${data.postId}`,
                          message: getNotificationMessage({ type: NotificationType.Comment, username: user.username }),
                          receiverId: post.creatorId,
                          senderId: user.id,
@@ -323,7 +325,7 @@ export class PostService {
                // exception for user replying to their own comment
                if (parentComment.commentorId !== user.id) {
                     await this.notificationService.sendNotification({
-                         action: `post/${comment.postId}`,
+                         action: `post/${parentComment.postId}`,
                          message: getNotificationMessage({ type: NotificationType.Reply, username: user.username }),
                          receiverId: parentComment.commentorId,
                          senderId: user.id,
