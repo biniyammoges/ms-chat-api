@@ -7,7 +7,8 @@ import { SocketStateService } from "./socket-state.service";
 import { WsException } from "@nestjs/websockets";
 import { AuthService } from "src/modules/auth/services/auth.service";
 import { UserDto } from "src/modules/user/dtos/user.dto";
-import { SocketEvents } from "src/shared/enums";
+import { SocketEvents } from "../../../shared/enums";
+import { UserService } from "../../../modules/user/user.service";
 
 export type AuthSocket = socketio.Socket & { data: { user: UserDto } }
 
@@ -42,17 +43,20 @@ export class SocketAdapter extends IoAdapter implements WebSocketAdapter {
           return server;
      }
 
-     bindClientConnect(server: socketio.Server, callback: Function): void {
-          server.on(SocketEvents.CONNECTION, (socket: AuthSocket) => {
-               this.socketStateService.add(socket.data.user.id, socket)
+     async bindClientConnect(server: socketio.Server, callback: Function): Promise<void> {
+          const userService = this.app.get(UserService);
 
-               socket.on(SocketEvents.DISCONNECT, () => {
+          server.on(SocketEvents.Connection, async (socket: AuthSocket) => {
+               this.socketStateService.add(socket.data.user.id, socket)
+               await userService.updateLastSeen(socket.data.user.id, { markAsOnline: true })
+
+               socket.on(SocketEvents.Disconnect, async () => {
                     this.socketStateService.remove(socket.data.user.id, socket)
-                    socket.removeAllListeners(SocketEvents.DISCONNECT)
+                    await userService.updateLastSeen(socket.data.user.id, { markAsOnline: false })
+                    socket.removeAllListeners(SocketEvents.Disconnect)
                })
 
                callback(socket)
           })
      }
-
 }

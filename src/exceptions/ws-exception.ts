@@ -18,7 +18,7 @@ export class WebsocketExceptionsFilter extends BaseWsExceptionFilter {
           this.redisEmitterService.emitToSelf({
                data: { id: client.id, ...details },
                socketId: client.id,
-               event: SocketEvents.ERROR,
+               event: SocketEvents.Error,
                userId: client.data.user.id
           });
      }

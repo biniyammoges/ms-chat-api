@@ -38,6 +38,12 @@ export class UserEntity extends AbstractEntity {
      @Column({ nullable: true })
      birthDate?: Date;
 
+     @Column('bool', { default: false })
+     isOnline: boolean
+
+     @Column('date', { nullable: true })
+     lastSeen: Date
+
      @Column({ nullable: true })
      refreshToken?: string;
 

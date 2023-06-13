@@ -18,4 +18,6 @@ export class ChatRoomEntity extends AbstractEntity {
 
      @OneToMany(() => ChatUserEntity, ce => ce.chatRoom, { cascade: true })
      chatUsers: ChatUserEntity[]
+
+     unreadCount: string
 }

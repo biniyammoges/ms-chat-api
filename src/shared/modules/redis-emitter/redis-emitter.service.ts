@@ -1,5 +1,4 @@
 import { Injectable, Logger } from "@nestjs/common";
-import { Server } from 'socket.io'
 import { RedisService } from "../redis/redis.service";
 import { REDIS_EMIT_TO_ALL, REDIS_EMIT_TO_ONE, REDIS_EMIT_TO_ROOM, REDIS_EMIT_TO_SELF } from "./redis-emitter.constant";
 import { RedisEmitEventDto, RedisEmitEventToOneDto, RedisEmitRoomEventDto } from "./dto/redis-emit.dto";

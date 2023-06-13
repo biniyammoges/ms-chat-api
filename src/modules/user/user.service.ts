@@ -67,4 +67,13 @@ export class UserService {
                await runner.release()
           }
      }
+
+     async updateLastSeen(userId: string, opts: { markAsOnline: boolean }) {
+          await this.em.update(UserEntity,
+               { id: userId },
+               {
+                    isOnline: opts.markAsOnline,
+                    lastSeen: opts.markAsOnline ? null : new Date()
+               })
+     }
 }

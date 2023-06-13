@@ -1,7 +1,6 @@
-import { Inject, UseFilters, UseInterceptors, UsePipes, ValidationPipe } from '@nestjs/common';
+import { Inject, UseFilters, UsePipes, ValidationPipe } from '@nestjs/common';
 import { ConnectedSocket, MessageBody, SubscribeMessage, WebSocketGateway, WsException, WsResponse } from '@nestjs/websockets';
 import { SocketPostEvents } from '../../shared';
-import { RedisEmitterInterceptor } from '../../shared/modules/redis-emitter/redis-emitter.interceptor';
 import { PostService } from './post.service';
 import { JoinPostRoomDto } from './dtos/join-post-room.dto';
 import { SOCKET_STATE_TOKEN } from '../../shared/modules/socket-state/socket-state.constant';
@@ -10,7 +9,6 @@ import { AuthSocket } from '../../shared/modules/socket-state/socket.adapter';
 import { WebsocketExceptionsFilter } from '../../exceptions/ws-exception';
 
 @WebSocketGateway()
-// @UseInterceptors(RedisEmitterInterceptor)
 @UsePipes(new ValidationPipe({ whitelist: true, transform: true }))
 @UseFilters(WebsocketExceptionsFilter)
 export class PostGateway {

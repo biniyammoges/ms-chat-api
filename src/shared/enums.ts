@@ -1,7 +1,7 @@
 export enum SocketEvents {
-     CONNECTION = 'connection',
-     DISCONNECT = 'disconnect',
-     ERROR = 'error'
+     Connection = 'connection',
+     Disconnect = 'disconnect',
+     Error = 'error'
 }
 
 export enum SocketPostEvents {
@@ -19,9 +19,14 @@ export enum NotificationSocketEvents {
 }
 
 export enum ChatSocketEvents {
+     SendMessage = 'send-message',
+     MessageSent = 'message-sent',
      NewMessage = 'new-message',
      Seen = 'seen',
      Typing = 'typing',
+     TypingSent = 'typing-sent',
+     StoppedTyping = 'stopped-typing',
+     StoppedTypingSent = 'stopped-typing-sent',
      Active = 'active',
      Offline = 'offline',
      JoinChatRoom = 'join-chat-room',
