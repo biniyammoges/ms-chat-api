@@ -1,4 +1,4 @@
-import { UserEntity } from "src/modules/user/entities/user.entity";
+import { UserEntity } from "../../user/entities/user.entity";
 import { AbstractEntity } from "../../../shared";
 import { Column, Entity, JoinColumn, ManyToOne } from "typeorm";
 import { ChatRoomEntity } from "./chat-room.entity";
@@ -12,7 +12,7 @@ export class ChatUserEntity extends AbstractEntity {
      @JoinColumn({ name: "userId" })
      user: UserEntity
 
-     @Column('uuid')
+     @Column('uuid', { nullable: true })
      chatRoomId: string;
 
      @ManyToOne(() => ChatRoomEntity, { onDelete: 'CASCADE', onUpdate: 'CASCADE' })

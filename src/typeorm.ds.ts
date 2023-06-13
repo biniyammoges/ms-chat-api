@@ -10,6 +10,9 @@ import { CommentEntity } from "./modules/post/entities/comment.entity";
 import { CommentLikeEntity } from "./modules/post/entities/comment-like.entity";
 import { SavedPostEntity } from "./modules/post/entities/saved-post.entity";
 import { NotificationEntity } from "./modules/notification/entities/notification.entity";
+import { ChatRoomEntity } from "./modules/chat/entities/chat-room.entity";
+import { ChatEntity } from "./modules/chat/entities/chat.entity";
+import { ChatUserEntity } from "./modules/chat/entities/chat-user.entity";
 
 let isTsNode = false;
 // https://github.com/TypeStrong/ts-node/issues/846#issuecomment-631828160
@@ -22,7 +25,7 @@ if (process[Symbol.for('ts-node.register.instance')]) {
 const entities: DataSourceOptions['entities'] = [
      path.join(process.cwd(), '/dist/**/*.entity{.js, .ts}'),
      ...(process.env.NODE_ENV === 'test' ?
-          [UserEntity, FollowerEntity, FileEntity, PostEntity, PostMediaEntity, PostLikeEntity, CommentEntity, CommentLikeEntity, SavedPostEntity, NotificationEntity] : []),
+          [UserEntity, FollowerEntity, FileEntity, PostEntity, PostMediaEntity, PostLikeEntity, CommentEntity, CommentLikeEntity, SavedPostEntity, NotificationEntity, ChatRoomEntity, ChatEntity, ChatUserEntity] : []),
      ...(isTsNode ? [path.join(process.cwd(), 'src/**/*.entity{.ts, .js}')] : [])
 ]
 

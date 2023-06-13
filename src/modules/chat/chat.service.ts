@@ -1,9 +1,9 @@
 import { Injectable } from '@nestjs/common';
 import { InjectEntityManager } from '@nestjs/typeorm';
-import { RedisEmitterService } from 'src/shared/modules/redis-emitter/redis-emitter.service';
+import { RedisEmitterService } from '../../shared/modules/redis-emitter/redis-emitter.service';
 import { EntityManager, Not } from 'typeorm';
 import { NotificationService } from '../notification/notification.service';
-import { ChatSocketEvents, PaginationDto } from 'src/shared';
+import { ChatSocketEvents, PaginationDto } from '../../shared';
 import { ChatRoomEntity, ChatRoomType } from './entities/chat-room.entity';
 import { ChatEntity } from './entities/chat.entity';
 import { ChatUserEntity } from './entities/chat-user.entity';
@@ -49,7 +49,9 @@ export class ChatService {
      async retrieveChatRooms(userId: string, filter?: PaginationDto): Promise<[ChatRoomEntity[], number]> {
           const qry = await this.em.createQueryBuilder(ChatRoomEntity, 'cr')
                .leftJoin('cr.chats', 'chats')
-               .loadRelationCountAndMap('cr.unreadCount', 'cr.chats', 'c', qb => qb.where('c.isRead = :isRead', { isRead: false }))
+               .loadRelationCountAndMap('cr.unreadCount', 'cr.chats', 'c', qb => qb
+                    .where('c.isSeen = :isSeen', { isSeen: false })
+                    .andWhere('c.senderId != :senderId', { senderId: userId }))
                .leftJoinAndSelect('cr.chatUsers', 'chatUsers')
                .leftJoinAndSelect('chatUsers.user', 'user')
                .leftJoinAndSelect('user.avatar', 'avatar')
@@ -134,21 +136,17 @@ export class ChatService {
                chatQry.limit(filter.limit)
           }
 
-          const chatResponse = await chatQry.getManyAndCount()
+          return chatQry.getManyAndCount()
+     }
 
-          // mark all message that are sent by other as seen
-          await this.em.update(ChatEntity, { chatRoomId, senderId: Not(retrieverId), isSeen: false }, { isSeen: true })
-
-          // emits 'seen' event to other user only if chat room is private
-          if (chatUsers.length) {
-               await this.redisEmitterService.emitToOne({
-                    event: ChatSocketEvents.Seen,
-                    data: { chatRoomId },
-                    userId: chatUsers[0].userId //other user id in private chat room
-               })
-          }
-
-          return chatResponse
+     /**
+      * 
+      * @param param0 - has two properties chatRoomId and userId, userId is to filter message not sent by userId
+      * @returns 
+      */
+     async maskAllMessagesAsSeen({ chatRoomId, userId }: { userId: string, chatRoomId: string }) {
+          const response = await this.em.update(ChatEntity, { userId, chatRoomId, isSeen: false }, { isSeen: true })
+          return { seenCount: response.affected, chatRoomId }
      }
 
      /**

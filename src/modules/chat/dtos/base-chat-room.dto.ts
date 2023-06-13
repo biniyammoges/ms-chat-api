@@ -4,8 +4,9 @@ import { ChatRoomType } from "../entities/chat-room.entity";
 
 export class BaseChatRoomDto extends BaseDto {
      type: ChatRoomType;
-     chats?: BaseChatDto[]
-     chatUsers?: BaseChatUserDto[]
+     chats?: BaseChatDto[];
+     chatUsers?: BaseChatUserDto[];
+     unreadCount?: string;
 }
 
 export class BaseChatDto extends BaseDto {

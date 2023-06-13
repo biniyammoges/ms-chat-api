@@ -2,13 +2,14 @@ import { Body, UseFilters, UseInterceptors, UsePipes, ValidationPipe } from "@ne
 import { ConnectedSocket, MessageBody, SubscribeMessage, WebSocketGateway, WsException, WsResponse } from "@nestjs/websockets";
 import { WebsocketExceptionsFilter } from "../../exceptions/ws-exception";
 import { ChatService } from "./chat.service";
-import { ChatSocketEvents, getChatRoomId } from "src/shared";
+import { ChatSocketEvents, getChatRoomId } from "../../shared";
 import { JoinChatRoomDto, LeaveChatRoomDto } from "./dtos/join-or-leave-chat-room.dto";
 import { AuthSocket } from "../../shared/modules/socket-state/socket.adapter";
-import { RedisEmitterInterceptor } from "src/shared/modules/redis-emitter/redis-emitter.interceptor";
+import { RedisEmitterInterceptor } from "../../shared/modules/redis-emitter/redis-emitter.interceptor";
 import { CreateChatDto } from "./dtos/create-chat.dto";
 import { TypingDto } from "./dtos/typing.dto";
 import { RedisEmitterService } from "../../shared/modules/redis-emitter/redis-emitter.service";
+import { ChatRoomIdDto } from "./dtos/chat-room-id.dto";
 
 @WebSocketGateway()
 @UsePipes(new ValidationPipe({ whitelist: true, transform: true }))
@@ -77,6 +78,27 @@ export class ChatGateway {
 
           await this.redisEmitterService.emitToRoom({ event: ChatSocketEvents.Typing, data, roomId, socketId: socket.id, })
           return { event: ChatSocketEvents.StoppedTypingSent, data }
+     }
+
+     @SubscribeMessage(ChatSocketEvents.Seen)
+     async markMessageAsSeen(@ConnectedSocket() socket: AuthSocket, @MessageBody() data: ChatRoomIdDto): Promise<WsResponse> {
+          const roomId = getChatRoomId(data.chatRoomId);
+
+          if (!socket.rooms.has(roomId)) {
+               throw new WsException(`Join chat room to emit ${ChatSocketEvents.Seen} events`)
+          }
+
+          const { seenCount } = await this.chatService.maskAllMessagesAsSeen({ chatRoomId: data.chatRoomId, userId: socket.data.user.id })
+
+          // emits seen event to all sockets in room except current socket
+          await this.redisEmitterService.emitToRoom({
+               event: ChatSocketEvents.Seen,
+               data: { ...data, seenCount },
+               roomId,
+               socketId: socket.id,
+          })
+
+          return { event: ChatSocketEvents.SentSeen, data: { seenCount, ...data } }
      }
 
 }

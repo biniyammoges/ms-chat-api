@@ -1,7 +1,7 @@
 import { Controller, Get, Param, Query, UseGuards } from '@nestjs/common';
 import { ChatService } from './chat.service';
 import { JwtAuthGuard } from '../auth/guards/at.guard';
-import { GetUser, PaginationEntity } from 'src/shared';
+import { GetUser, PaginationEntity } from '../../shared';
 import { UserEntity } from '../user/entities/user.entity';
 import { ChatTransformer } from './chat.transformer';
 import { BaseChatDto, BaseChatRoomDto } from './dtos/base-chat-room.dto';

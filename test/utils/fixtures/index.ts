@@ -1,3 +1,4 @@
+import { chatFixtures, chatRoomFixtures } from "./chat.fixture";
 import { fileFixtures } from "./file.fixture";
 import { followerFixture } from "./followe.fixture";
 import { notificationFixtures } from "./notification.fixture";
@@ -12,5 +13,7 @@ export const fixtures = {
      postsLikes: postLikeFixtures,
      savedPosts: savedPostFixtures,
      comments: commentFixtures,
-     ntoifications: notificationFixtures
+     ntoifications: notificationFixtures,
+     chatRooms: chatRoomFixtures,
+     chats: chatFixtures
 }

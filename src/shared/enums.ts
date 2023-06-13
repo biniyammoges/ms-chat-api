@@ -23,6 +23,7 @@ export enum ChatSocketEvents {
      MessageSent = 'message-sent',
      NewMessage = 'new-message',
      Seen = 'seen',
+     SentSeen = 'sent-seen',
      Typing = 'typing',
      TypingSent = 'typing-sent',
      StoppedTyping = 'stopped-typing',
