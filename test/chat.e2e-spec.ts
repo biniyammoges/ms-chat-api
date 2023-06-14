@@ -22,7 +22,7 @@ describe('chat-controller', () => {
           const res = await client.requestApi<any, PaginationEntity<BaseChatRoomDto>>('/chat/room/retrieve');
 
           expect(res.data).toBeDefined()
-          expect(res.data[0].unreadCount).toBe(1)
+          expect(res.data[0].unreadCount).toBe(2)
           expect(res.total).toBeDefined()
      })
 
@@ -46,5 +46,12 @@ describe('chat-controller', () => {
           expect(res.data.every(c => c.chatRoomId === chatRoomFixtures.room0.id)).toBeTruthy()
           expect(res.data.length).toBeDefined()
           expect(res.total).toBeDefined()
+     })
+
+     it("/chat/room/:roomId/retrieve-chats - (GET) - should return chat room not found error with unknown chatroom ID", async () => {
+          await client.login()
+          const res = await client.requestApi(`/chat/room/${userFixtures.user0.id}/retrieve-chats`);
+
+          expect(res.message).toBe('ChatRoom Not Found')
      })
 })

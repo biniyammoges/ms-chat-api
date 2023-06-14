@@ -1,4 +1,4 @@
-import { IsString, IsUUID } from "class-validator";
+import { IsOptional, IsString, IsUUID } from "class-validator";
 
 export class CreateChatDto {
      @IsUUID()
@@ -6,4 +6,8 @@ export class CreateChatDto {
 
      @IsString()
      message: string
+
+     @IsOptional()
+     @IsUUID()
+     parentChatId?: string
 }

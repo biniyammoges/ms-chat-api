@@ -14,6 +14,8 @@ export class BaseChatDto extends BaseDto {
      sender?: UserDto;
      chatRoomId: string;
      chatRoom?: BaseChatRoomDto;
+     parentChatId?: string;
+     parentChat?: BaseChatDto
 }
 
 export class BaseChatUserDto extends BaseDto {

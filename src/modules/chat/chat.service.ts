@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectEntityManager } from '@nestjs/typeorm';
 import { EntityManager } from 'typeorm';
 import { PaginationDto } from '../../shared';
@@ -89,7 +89,7 @@ export class ChatService {
       * @param opts - filter option - has userIdToExclude and fetchFromPrivate room 
       * @returns  {ChatUserEntity[]} - array of chat user entity
       */
-     async getChatUsers(chatRoomId: string, opts?: { userIdToExclude: string, fetchFromPrivateRoom?: boolean }) {
+     async getChatUsers(chatRoomId: string, opts?: { userIdToExclude: string, fetchFromPrivateRoom?: boolean, isFromSocket?: boolean }) {
           const chatRoom = await this.em.findOne(ChatRoomEntity, {
                where: {
                     id: chatRoomId,
@@ -99,7 +99,10 @@ export class ChatService {
                }
           });
           if (!chatRoom) {
-               throw new WsException('ChatRoom Not Found')
+               if (opts.isFromSocket)
+                    throw new WsException('ChatRoom Not Found')
+               else
+                    throw new NotFoundException('ChatRoom Not Found')
           }
 
           const chatUserQry = await this.em.createQueryBuilder(ChatUserEntity, 'cu')
@@ -125,11 +128,12 @@ export class ChatService {
       * @returns 
       */
      async retrieveChats(chatRoomId: string, retrieverId: string, filter?: PaginationDto): Promise<[ChatEntity[], number]> {
-          await this.getChatUsers(chatRoomId, { userIdToExclude: retrieverId, fetchFromPrivateRoom: true });
+          await this.getChatUsers(chatRoomId, { userIdToExclude: retrieverId, fetchFromPrivateRoom: true, isFromSocket: false });
 
           const chatQry = await this.em.createQueryBuilder(ChatEntity, 'c')
                .where('c.chatRoomId = :chatRoomId', { chatRoomId })
                .leftJoinAndSelect('c.sender', 'sender')
+               .leftJoinAndSelect('c.parentChat', 'parentChat')
                .orderBy('c.createdAt', 'DESC');
 
           if (filter.limit && filter.page) {
@@ -149,7 +153,7 @@ export class ChatService {
       * @returns 
       */
      async maskAllMessagesAsSeen({ chatRoomId, userId, readerId }: { userId: string, chatRoomId: string, readerId: string }) {
-          const chatUsers = await this.getChatUsers(chatRoomId, { userIdToExclude: readerId })
+          const chatUsers = await this.getChatUsers(chatRoomId, { userIdToExclude: readerId, isFromSocket: true })
           const response = await this.em.update(ChatEntity, { senderId: userId, chatRoomId, isSeen: false, }, { isSeen: true })
           return { seenCount: response.affected, chatRoomId, chatUsers: chatUsers.length ? chatUsers : [] }
      }
@@ -161,7 +165,7 @@ export class ChatService {
       * @param socketId - optional and to exclude the socket from recieving event 
       */
      async sendMessage(data: CreateChatDto, senderId: string, socketId?: string) {
-          const chatUsers = await this.getChatUsers(data.chatRoomId, { userIdToExclude: senderId });
+          const chatUsers = await this.getChatUsers(data.chatRoomId, { userIdToExclude: senderId, isFromSocket: true });
           const message = await this.em.save(this.em.create(ChatEntity, { ...data, senderId }));
 
           return { message, chatUsers }

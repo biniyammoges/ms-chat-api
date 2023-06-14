@@ -5,6 +5,14 @@ import { ChatRoomEntity } from "./chat-room.entity";
 
 @Entity()
 export class ChatEntity extends AbstractEntity {
+
+     @Column('uuid', { nullable: true })
+     parentChatId?: string
+
+     @ManyToOne(() => ChatEntity, { onDelete: 'SET NULL', onUpdate: 'CASCADE' })
+     @JoinColumn({ name: "parentChatId" })
+     parentChat?: ChatEntity
+
      @Column()
      message: string;
 

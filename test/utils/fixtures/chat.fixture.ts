@@ -31,8 +31,16 @@ export const chatFixtures = {
           senderId: "051ee4bc-df0f-494a-961b-0591f8d6694e",
      }),
      chat2: fixture(ChatEntity, {
+          id: "9e496ffc-96a3-4674-9f44-38227b3a161a",
           chatRoomId: '2f6caff1-0388-4338-93cf-bd797ceb7a39',
           message: 'how are you doing buddy, long time no see',
           senderId: "051ee4bc-df0f-494a-961b-0591f8d6694e",
+     }),
+     chat3: fixture(ChatEntity, {
+          id: "618d410d-d225-44f4-bf65-0adf19a3b98b",
+          parentChatId: "9e496ffc-96a3-4674-9f44-38227b3a161a",
+          chatRoomId: '2f6caff1-0388-4338-93cf-bd797ceb7a39',
+          message: "yeah buddy, let's catch up soon doo!",
+          senderId: "85aceae5-b868-47de-8e19-44c6e70688b0",
      }),
 }
