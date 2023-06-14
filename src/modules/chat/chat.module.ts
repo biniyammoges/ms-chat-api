@@ -9,15 +9,17 @@ import { RedisEmitterModule } from '../../shared/modules/redis-emitter/redis-emi
 import { UserModule } from '../user/user.module';
 import { NotificationModule } from '../notification/notification.module';
 import { ChatTransformer } from './chat.transformer';
-import { ChatGateway } from './chat.gateway';
+import { ChatGateway, } from './chat.gateway';
+import { SocketStateModule } from '../../shared/modules/socket-state/socket-state.module';
 
 @Module({
   imports: [
     TypeOrmModule.forFeature([ChatRoomEntity, ChatEntity, ChatUserEntity]),
     RedisEmitterModule,
     UserModule,
-    NotificationModule],
+    NotificationModule,
+    SocketStateModule],
   controllers: [ChatController],
-  providers: [ChatService, ChatTransformer, ChatGateway]
+  providers: [ChatService, ChatTransformer, ChatGateway,]
 })
 export class ChatModule { }

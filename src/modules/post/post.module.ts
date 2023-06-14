@@ -24,7 +24,7 @@ import { NotificationModule } from '../notification/notification.module';
       PostEntity, PostMediaEntity, PostLikeEntity, CommentEntity, CommentLikeEntity, SavedPostEntity]),
     FollowerModule, RedisEmitterModule, SocketStateModule, UserModule, NotificationModule],
   controllers: [PostController],
-  providers: [PostService, PostGateway, PostTransformer, PostLikeTransformer, CommentTransformer],
+  providers: [PostService, PostTransformer, PostLikeTransformer, CommentTransformer],
   exports: [PostTransformer, PostLikeTransformer, CommentTransformer]
 })
 export class PostModule { }

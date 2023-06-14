@@ -68,7 +68,7 @@ export class UserService {
           }
      }
 
-     async updateLastSeen(userId: string, opts: { markAsOnline: boolean }) {
+     async updateLastSeen(userId: string, opts: { markAsOnline: boolean } = { markAsOnline: false }) {
           await this.em.update(UserEntity,
                { id: userId },
                {

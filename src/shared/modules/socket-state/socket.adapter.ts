@@ -43,7 +43,7 @@ export class SocketAdapter extends IoAdapter implements WebSocketAdapter {
           return server;
      }
 
-     async bindClientConnect(server: socketio.Server, callback: Function): Promise<void> {
+     bindClientConnect(server: socketio.Server, callback: Function): void {
           const userService = this.app.get(UserService);
 
           server.on(SocketEvents.Connection, async (socket: AuthSocket) => {
@@ -52,7 +52,7 @@ export class SocketAdapter extends IoAdapter implements WebSocketAdapter {
 
                socket.on(SocketEvents.Disconnect, async () => {
                     this.socketStateService.remove(socket.data.user.id, socket)
-                    await userService.updateLastSeen(socket.data.user.id, { markAsOnline: false })
+                    await userService.updateLastSeen(socket.data.user.id)
                     socket.removeAllListeners(SocketEvents.Disconnect)
                })
 

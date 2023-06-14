@@ -1,26 +1,31 @@
 import { Injectable } from '@nestjs/common';
 import { InjectEntityManager } from '@nestjs/typeorm';
-import { RedisEmitterService } from '../../shared/modules/redis-emitter/redis-emitter.service';
-import { EntityManager, Not } from 'typeorm';
-import { NotificationService } from '../notification/notification.service';
-import { ChatSocketEvents, PaginationDto } from '../../shared';
+import { EntityManager } from 'typeorm';
+import { PaginationDto } from '../../shared';
 import { ChatRoomEntity, ChatRoomType } from './entities/chat-room.entity';
 import { ChatEntity } from './entities/chat.entity';
 import { ChatUserEntity } from './entities/chat-user.entity';
 import { CreateChatDto } from './dtos/create-chat.dto';
 import { WsException } from '@nestjs/websockets';
 import { JoinChatRoomDto } from './dtos/join-or-leave-chat-room.dto';
+import { UserService } from '../user/user.service'
 
 @Injectable()
 export class ChatService {
      constructor(
           @InjectEntityManager()
           private em: EntityManager,
-          private redisEmitterService: RedisEmitterService,
-          private notificationService: NotificationService) { }
+          private userService: UserService
+     ) { }
 
 
      async findOrCreateChatRoom(data: JoinChatRoomDto, finderOrCreatorId: string) {
+          if (data.recipientId === finderOrCreatorId) {
+               throw new WsException("You can't join room with your own Id")
+          }
+
+          // throws error if user not found with recipientId
+          await this.userService.findUserById(data.recipientId)
           const roomQry = await this.em.createQueryBuilder(ChatRoomEntity, 'cr');
 
           if (data.chatRoomId) {
@@ -28,16 +33,14 @@ export class ChatService {
           }
 
           const chatRoom = await roomQry
-               .innerJoin('cr.chatUsers', 'chatUsers')
-               .andWhere('chatUsers.userId = :recipientId', { recipientId: data.recipientId })
-               .andWhere('chatUsers.userId = :finderOrCreatorId', { finderOrCreatorId })
+               .innerJoin('cr.chatUsers', 'chatUsers1', 'chatUsers1.userId = :recipientId', { recipientId: data.recipientId })
+               .innerJoin('cr.chatUsers', 'chatUsers2', 'chatUsers2.userId = :finderOrCreatorId', { finderOrCreatorId: finderOrCreatorId })
                .getOne();
 
           if (chatRoom)
                return chatRoom
           else {
                return this.em.save(this.em.create(ChatRoomEntity, {
-                    type: ChatRoomType.Private,
                     chatUsers: [
                          { userId: data.recipientId },
                          { userId: finderOrCreatorId }
@@ -55,7 +58,8 @@ export class ChatService {
                .leftJoinAndSelect('cr.chatUsers', 'chatUsers')
                .leftJoinAndSelect('chatUsers.user', 'user')
                .leftJoinAndSelect('user.avatar', 'avatar')
-               .where('chatUsers.userId = :userId', { userId })
+               .innerJoin('cr.chatUsers', 'cu', 'cu.userId = :userId', { userId })
+               .where('user.id != :id', { id: userId })
                .orderBy('chats.createdAt', 'DESC');
 
           if (filter.limit && filter.page) {
@@ -85,7 +89,7 @@ export class ChatService {
       * @param opts - filter option - has userIdToExclude and fetchFromPrivate room 
       * @returns  {ChatUserEntity[]} - array of chat user entity
       */
-     async getChatUsers(chatRoomId: string, opts?: { userIdToExclude?: string, fetchFromPrivateRoom?: boolean }) {
+     async getChatUsers(chatRoomId: string, opts?: { userIdToExclude: string, fetchFromPrivateRoom?: boolean }) {
           const chatRoom = await this.em.findOne(ChatRoomEntity, {
                where: {
                     id: chatRoomId,
@@ -121,7 +125,7 @@ export class ChatService {
       * @returns 
       */
      async retrieveChats(chatRoomId: string, retrieverId: string, filter?: PaginationDto): Promise<[ChatEntity[], number]> {
-          const chatUsers = await this.getChatUsers(chatRoomId, { userIdToExclude: retrieverId, fetchFromPrivateRoom: true });
+          await this.getChatUsers(chatRoomId, { userIdToExclude: retrieverId, fetchFromPrivateRoom: true });
 
           const chatQry = await this.em.createQueryBuilder(ChatEntity, 'c')
                .where('c.chatRoomId = :chatRoomId', { chatRoomId })
@@ -144,9 +148,10 @@ export class ChatService {
       * @param param0 - has two properties chatRoomId and userId, userId is to filter message not sent by userId
       * @returns 
       */
-     async maskAllMessagesAsSeen({ chatRoomId, userId }: { userId: string, chatRoomId: string }) {
-          const response = await this.em.update(ChatEntity, { userId, chatRoomId, isSeen: false }, { isSeen: true })
-          return { seenCount: response.affected, chatRoomId }
+     async maskAllMessagesAsSeen({ chatRoomId, userId, readerId }: { userId: string, chatRoomId: string, readerId: string }) {
+          const chatUsers = await this.getChatUsers(chatRoomId, { userIdToExclude: readerId })
+          const response = await this.em.update(ChatEntity, { senderId: userId, chatRoomId, isSeen: false, }, { isSeen: true })
+          return { seenCount: response.affected, chatRoomId, chatUsers: chatUsers.length ? chatUsers : [] }
      }
 
      /**
@@ -159,15 +164,6 @@ export class ChatService {
           const chatUsers = await this.getChatUsers(data.chatRoomId, { userIdToExclude: senderId });
           const message = await this.em.save(this.em.create(ChatEntity, { ...data, senderId }));
 
-          if (chatUsers.length) {
-               for (const cu of chatUsers) {
-                    this.redisEmitterService.emitToOne({
-                         data: message,
-                         event: ChatSocketEvents.NewMessage,
-                         userId: cu.userId,
-                         ...(socketId && { socketId })
-                    })
-               }
-          }
+          return { message, chatUsers }
      }
 }
