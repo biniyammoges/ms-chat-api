@@ -17,6 +17,7 @@ import { RedisEmitterModule } from './shared/modules/redis-emitter/redis-emitter
 import { LoggerMiddleware } from './middlewares/logger.middleware';
 import { NotificationModule } from './modules/notification/notification.module';
 import { ChatModule } from './modules/chat/chat.module';
+import { StoryModule } from './modules/story/story.module';
 
 @Module({
   imports: [
@@ -39,7 +40,8 @@ import { ChatModule } from './modules/chat/chat.module';
     RedisEmitterModule,
     SocketStateModule,
     NotificationModule,
-    ChatModule],
+    ChatModule,
+    StoryModule],
   controllers: [AppController],
   providers: [{ provide: APP_GUARD, useValue: JwtAuthGuard },],
   exports: []
