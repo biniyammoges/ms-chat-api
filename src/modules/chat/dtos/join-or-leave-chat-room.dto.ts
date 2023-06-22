@@ -7,12 +7,12 @@ export class JoinChatRoomDto {
 
      @IsOptional()
      @IsUUID()
-     chatRoomId: string
+     chatRoomId?: string
 
      @IsOptional()
      @IsBoolean()
      @Transform(({ value }) => value === 'true' ? true : false)
-     isGroupChat: boolean
+     isGroupChat?: boolean
 }
 
 export class LeaveChatRoomDto {

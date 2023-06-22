@@ -7,7 +7,7 @@ export class BaseStoryDto extends BaseDto {
      creatorId: string
      creator?: UserDto
      expire: Date
-     isExpired: boolean;
+     isArchived: boolean;
      medias?: BaseStoryMediaDto[]
      viewers?: BaseStoryViewerDto[]
      storyMessages: BaseStoryMessageDto[]

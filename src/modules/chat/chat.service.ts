@@ -9,6 +9,9 @@ import { CreateChatDto } from './dtos/create-chat.dto';
 import { WsException } from '@nestjs/websockets';
 import { JoinChatRoomDto } from './dtos/join-or-leave-chat-room.dto';
 import { UserService } from '../user/user.service'
+import { UserEntity } from '../user/entities/user.entity';
+import { CreateStoryMessageDto } from '../story/dtos/create-story-message.dto';
+import { StoryEntity } from '../story/entities/story.entity';
 
 @Injectable()
 export class ChatService {
@@ -169,5 +172,17 @@ export class ChatService {
           const message = await this.em.save(this.em.create(ChatEntity, { ...data, senderId }));
 
           return { message, chatUsers }
+     }
+
+     async createStoryMessage(data: CreateStoryMessageDto, opts: { recipientId: string, senderId: string, storyId: string }) {
+          const chatRoom = await this.findOrCreateChatRoom({ recipientId: opts.recipientId }, opts.senderId)
+          const message = await this.em.save(this.em.create(ChatEntity, {
+               ...data,
+               chatRoomId: chatRoom.id,
+               senderId: opts.senderId,
+               storyMessage: { storyId: opts.storyId }
+          }));
+
+          return message
      }
 }

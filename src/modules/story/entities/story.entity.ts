@@ -14,11 +14,11 @@ export class StoryEntity extends AbstractEntity {
      @JoinColumn({ name: "creatorId" })
      creator: UserEntity
 
-     @Column('date')
+     @Column('timestamptz')
      expire: Date
 
      @Column('bool', { default: false })
-     isExpired: boolean;
+     isArchived: boolean;
 
      @OneToMany(() => StoryMediaEntity, sme => sme.story, { eager: true, cascade: true })
      medias?: StoryMediaEntity[]

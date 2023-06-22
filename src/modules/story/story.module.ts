@@ -1,9 +1,16 @@
 import { Module } from '@nestjs/common';
 import { StoryService } from './story.service';
 import { StoryController } from './story.controller';
+import { NotificationModule } from '../notification/notification.module';
+import { RedisEmitterModule } from 'src/shared/modules/redis-emitter/redis-emitter.module';
+import { StoryTransformer } from './story.transformer';
+import { FollowerModule } from '../follower/follower.module';
+import { ChatModule } from '../chat/chat.module';
 
 @Module({
+  imports: [NotificationModule, RedisEmitterModule, FollowerModule, ChatModule],
   controllers: [StoryController],
-  providers: [StoryService]
+  providers: [StoryService, StoryTransformer],
+  exports: [StoryTransformer]
 })
-export class StoryModule {}
+export class StoryModule { }

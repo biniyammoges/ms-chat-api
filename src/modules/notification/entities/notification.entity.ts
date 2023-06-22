@@ -10,7 +10,8 @@ export enum NotificationType {
      Comment = 'comment',
      CommentLike = 'comment-like',
      Message = 'message',
-     Follow = 'follow'
+     Follow = 'follow',
+     AddedStory = 'added-story',
 }
 
 @Entity()
