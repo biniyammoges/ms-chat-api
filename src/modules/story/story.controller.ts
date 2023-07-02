@@ -49,6 +49,12 @@ export class StoryController {
     return new PaginationEntity({ data: stories.map(s => this.storyTransformer.entityToDto(s)), total })
   }
 
+  @Get('retrieve/:storyId')
+  async retrieveStory(@GetUser() retriever: UserEntity, @Param() storyIdDto: StoryIdDto) {
+    const story = await this.storyService.retrieveStory(storyIdDto.storyId, retriever);
+    return this.storyTransformer.entityToDto(story)
+  }
+
   @Get('retrieve-my-archived')
   async retrieveMyArchivedStories(@GetUser() retriever: UserEntity, @Query('limit') limit: number = 20, @Query('page') page: number = 1): Promise<PaginationEntity<BaseStoryDto>> {
     const [stories, total] = await this.storyService.retrieveMyArchived(retriever, { limit, page })

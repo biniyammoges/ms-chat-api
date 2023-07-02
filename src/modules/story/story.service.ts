@@ -13,6 +13,7 @@ import { addDays } from 'date-fns';
 import { FollowerService } from '../follower/follower.service';
 import { NotificationService } from '../notification/notification.service';
 import { NotificationType } from '../notification/entities/notification.entity';
+import { StoryViewerEntity } from './entities/story-viewer.entity';
 
 @Injectable()
 export class StoryService {
@@ -43,6 +44,32 @@ export class StoryService {
           return this.em.save(story);
      }
 
+     async retrieveStory(storyId: string, retriever: UserEntity) {
+          const qry = this.em.createQueryBuilder(StoryEntity, 's')
+               .where('s.id = :storyId', { storyId })
+               .innerJoinAndSelect('s.creator', 'creator')
+               .leftJoinAndSelect('creator.avatar', 'avatar')
+               .leftJoinAndSelect('s.medias', 'medias')
+
+          const story = await qry.getOne()
+          if (!story) {
+               throw new NotFoundException('Story Not Found')
+          }
+
+          if (story.creatorId === retriever.id) {
+               story.viewers = await this.em.find(StoryViewerEntity, { where: { storyId }, relations: ['viewer'] })
+          }
+          else {
+               const alreadyViewed = await this.em.findOne(StoryViewerEntity, { where: { storyId: storyId, viewerId: retriever.id } });
+
+               if (!alreadyViewed) {
+                    await this.em.save(this.em.create(StoryViewerEntity, { viewerId: retriever.id }))
+               }
+          }
+
+          return story
+     }
+
      async retrieveStories(retriever: UserEntity, filter: PaginationDto) {
           return this.em.createQueryBuilder(StoryEntity, 's')
                .where('s.isArchived = :isArchived', { isArchived: false, })
@@ -51,6 +78,7 @@ export class StoryService {
                .innerJoin('creator.followers', 'followers')
                .where('followers.followerId = :retieverId', { retrieverId: retriever.id })
                .orWhere('s.creatorId = :creatorId', { creatorId: retriever.id })
+               .leftJoinAndSelect('s.viewers', 'viewers')
                .leftJoinAndSelect('s.medias', 'medias')
                .orderBy('s.createdAt', 'DESC')
                .skip((filter.page - 1) * filter.limit)
