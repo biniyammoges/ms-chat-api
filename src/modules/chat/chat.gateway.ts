@@ -55,12 +55,6 @@ export class ChatGateway {
      @SubscribeMessage(ChatSocketEvents.SendMessage)
      @UseInterceptors(RedisEmitterInterceptor)
      async sendMessage(@ConnectedSocket() socket: AuthSocket, @Body() data: CreateChatDto): Promise<WsResponse<BaseChatDto>> {
-          const roomId = await getChatRoomId(data.chatRoomId);
-
-          if (!socket.rooms.has(roomId)) {
-               throw new WsException('Join chat room to send message')
-          }
-
           const senderId = socket.data.user.id;
           const { chatUsers, message } = await this.chatService.sendMessage(data, senderId, socket.id)
 

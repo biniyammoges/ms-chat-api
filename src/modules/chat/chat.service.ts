@@ -9,9 +9,7 @@ import { CreateChatDto } from './dtos/create-chat.dto';
 import { WsException } from '@nestjs/websockets';
 import { JoinChatRoomDto } from './dtos/join-or-leave-chat-room.dto';
 import { UserService } from '../user/user.service'
-import { UserEntity } from '../user/entities/user.entity';
 import { CreateStoryMessageDto } from '../story/dtos/create-story-message.dto';
-import { StoryEntity } from '../story/entities/story.entity';
 
 @Injectable()
 export class ChatService {
@@ -20,7 +18,6 @@ export class ChatService {
           private em: EntityManager,
           private userService: UserService
      ) { }
-
 
      async findOrCreateChatRoom(data: JoinChatRoomDto, finderOrCreatorId: string) {
           if (data.recipientId === finderOrCreatorId) {
@@ -89,35 +86,35 @@ export class ChatService {
      /**
       * 
       * @param chatRoomId - chat room id 
-      * @param opts - filter option - has userIdToExclude and fetchFromPrivate room 
+      * @param opts - filter option - has fetcherId to filter chatroom where fetcher is in and isFromSocket to return exception and validateChatRoom  
       * @returns  {ChatUserEntity[]} - array of chat user entity
       */
-     async getChatUsers(chatRoomId: string, opts?: { userIdToExclude: string, fetchFromPrivateRoom?: boolean, isFromSocket?: boolean }) {
-          const chatRoom = await this.em.findOne(ChatRoomEntity, {
-               where: {
-                    id: chatRoomId,
-                    chatUsers: {
-                         userId: opts.userIdToExclude // checks if the userId exists in chat room
+     async getChatUsers(chatRoomId: string, opts: { fetcherId?: string, isFromSocket?: boolean, validateChatRoom?: boolean } = { validateChatRoom: true }) {
+          if (opts.validateChatRoom) {
+               const chatRoom = await this.em.findOne(ChatRoomEntity, {
+                    where: {
+                         id: chatRoomId,
+                         chatUsers: {
+                              userId: opts.fetcherId // checks if the userId exists in chat room
+                         }
                     }
+               });
+
+               if (!chatRoom) {
+                    if (opts.isFromSocket)
+                         throw new WsException('ChatRoom Not Found')
+                    else
+                         throw new NotFoundException('ChatRoom Not Found')
                }
-          });
-          if (!chatRoom) {
-               if (opts.isFromSocket)
-                    throw new WsException('ChatRoom Not Found')
-               else
-                    throw new NotFoundException('ChatRoom Not Found')
           }
 
           const chatUserQry = await this.em.createQueryBuilder(ChatUserEntity, 'cu')
                .where('cu.chatRoomId = :chatRoomId', { chatRoomId })
                .leftJoin('cu.chatRoom', 'chatRoom')
 
-          if (!!opts?.fetchFromPrivateRoom) {
-               chatUserQry.andWhere('chatRoom.type = :type', { type: ChatRoomType.Private });
-          }
-
-          if (opts?.userIdToExclude) {
-               chatUserQry.andWhere('cu.userId != :userIdToExclude', { userIdToExclude: opts.userIdToExclude });
+          // returns
+          if (opts?.fetcherId) {
+               chatUserQry.andWhere('cu.userId != :fetcherId', { fetcherId: opts.fetcherId });
           }
 
           return chatUserQry.getMany()
@@ -131,12 +128,14 @@ export class ChatService {
       * @returns 
       */
      async retrieveChats(chatRoomId: string, retrieverId: string, filter?: PaginationDto): Promise<[ChatEntity[], number]> {
-          await this.getChatUsers(chatRoomId, { userIdToExclude: retrieverId, fetchFromPrivateRoom: true, isFromSocket: false });
+          await this.getChatUsers(chatRoomId, { fetcherId: retrieverId, isFromSocket: false });
 
           const chatQry = await this.em.createQueryBuilder(ChatEntity, 'c')
                .where('c.chatRoomId = :chatRoomId', { chatRoomId })
                .leftJoinAndSelect('c.sender', 'sender')
                .leftJoinAndSelect('c.parentChat', 'parentChat')
+               .leftJoinAndSelect('c.storyMessage', 'storyMessage')
+               .leftJoinAndSelect('storyMessage.story', 'story')
                .orderBy('c.createdAt', 'DESC');
 
           if (filter.limit && filter.page) {
@@ -156,7 +155,7 @@ export class ChatService {
       * @returns 
       */
      async maskAllMessagesAsSeen({ chatRoomId, userId, readerId }: { userId: string, chatRoomId: string, readerId: string }) {
-          const chatUsers = await this.getChatUsers(chatRoomId, { userIdToExclude: readerId, isFromSocket: true })
+          const chatUsers = await this.getChatUsers(chatRoomId, { fetcherId: readerId, isFromSocket: true })
           const response = await this.em.update(ChatEntity, { senderId: userId, chatRoomId, isSeen: false, }, { isSeen: true })
           return { seenCount: response.affected, chatRoomId, chatUsers: chatUsers.length ? chatUsers : [] }
      }
@@ -168,21 +167,16 @@ export class ChatService {
       * @param socketId - optional and to exclude the socket from recieving event 
       */
      async sendMessage(data: CreateChatDto, senderId: string, socketId?: string) {
-          const chatUsers = await this.getChatUsers(data.chatRoomId, { userIdToExclude: senderId, isFromSocket: true });
+          const chatRoom = await this.findOrCreateChatRoom({ recipientId: data.reciepenId }, senderId)
+
+          const chatUsers = await this.getChatUsers(chatRoom.id, {
+               fetcherId: senderId,
+               isFromSocket: true,
+               validateChatRoom: false // tells not to check for chatroom existance
+          });
+
           const message = await this.em.save(this.em.create(ChatEntity, { ...data, senderId }));
 
           return { message, chatUsers }
-     }
-
-     async createStoryMessage(data: CreateStoryMessageDto, opts: { recipientId: string, senderId: string, storyId: string }) {
-          const chatRoom = await this.findOrCreateChatRoom({ recipientId: opts.recipientId }, opts.senderId)
-          const message = await this.em.save(this.em.create(ChatEntity, {
-               ...data,
-               chatRoomId: chatRoom.id,
-               senderId: opts.senderId,
-               storyMessage: { storyId: opts.storyId }
-          }));
-
-          return message
      }
 }
