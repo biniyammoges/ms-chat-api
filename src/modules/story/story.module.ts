@@ -6,9 +6,10 @@ import { RedisEmitterModule } from 'src/shared/modules/redis-emitter/redis-emitt
 import { StoryTransformer } from './story.transformer';
 import { FollowerModule } from '../follower/follower.module';
 import { ChatModule } from '../chat/chat.module';
+import { UserModule } from '../user/user.module';
 
 @Module({
-  imports: [NotificationModule, RedisEmitterModule, FollowerModule, ChatModule],
+  imports: [NotificationModule, RedisEmitterModule, FollowerModule, ChatModule, UserModule],
   controllers: [StoryController],
   providers: [StoryService, StoryTransformer],
   exports: [StoryTransformer]

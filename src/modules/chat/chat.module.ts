@@ -20,6 +20,7 @@ import { SocketStateModule } from '../../shared/modules/socket-state/socket-stat
     NotificationModule,
     SocketStateModule],
   controllers: [ChatController],
-  providers: [ChatService, ChatTransformer, ChatGateway,]
+  providers: [ChatService, ChatTransformer, ChatGateway,],
+  exports: [ChatService]
 })
 export class ChatModule { }

@@ -14,7 +14,7 @@ export class StoryEntity extends AbstractEntity {
      @JoinColumn({ name: "creatorId" })
      creator: UserEntity
 
-     @Column('timestamptz')
+     @Column('date')
      expire: Date
 
      @Column('bool', { default: false })

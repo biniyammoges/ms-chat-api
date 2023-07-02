@@ -4,23 +4,40 @@ import { EntityManager, } from 'typeorm';
 import { CreateStoryDto } from './dtos/create-story.dto';
 import { UserEntity } from '../user/entities/user.entity';
 import { StoryEntity } from './entities/story.entity';
-import { ChatSocketEvents, PaginationDto } from 'src/shared';
+import { ChatSocketEvents, PaginationDto, getNotificationMessage } from 'src/shared';
 import { CreateStoryMessageDto } from './dtos/create-story-message.dto';
 import { ChatService } from '../chat/chat.service';
 import { RedisEmitterService } from 'src/shared/modules/redis-emitter/redis-emitter.service';
 import { ChatEntity } from '../chat/entities/chat.entity';
 import { addDays } from 'date-fns';
+import { FollowerService } from '../follower/follower.service';
+import { NotificationService } from '../notification/notification.service';
+import { NotificationType } from '../notification/entities/notification.entity';
 
 @Injectable()
 export class StoryService {
      constructor(
           @InjectEntityManager() private em: EntityManager,
           private chatService: ChatService,
-          private redisEmitterService: RedisEmitterService
+          private redisEmitterService: RedisEmitterService,
+          private followerService: FollowerService,
+          private notificationService: NotificationService
      ) { }
 
      async createStory(data: CreateStoryDto, creator: UserEntity) {
           const story = await this.em.create(StoryEntity, { ...data, creatorId: creator.id, expire: addDays(new Date(), 1) })
+          const { data: followers } = await this.followerService.getFollowers(creator.username)
+
+          // notify followers when users uploads to story
+          for (const f of followers) {
+               await this.notificationService.sendNotification({
+                    action: `story/${story.id}`,
+                    message: getNotificationMessage({ type: NotificationType.AddedStory, username: creator.username }),
+                    receiverId: f.followerId,
+                    senderId: creator.id,
+                    type: NotificationType.AddedStory
+               })
+          }
 
           // TODO - archive story entity automatically after 24 hours
           return this.em.save(story);

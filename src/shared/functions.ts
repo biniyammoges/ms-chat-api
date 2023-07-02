@@ -24,6 +24,6 @@ export const getNotificationMessage = (data: { type: SupportedNotificationType, 
           case NotificationType.Follow:
                return `@${data.username} started following you`
           case NotificationType.AddedStory:
-               return `@${data.username} added to their story, don't miss out!`
+               return `@${data.username} recently added to their story, don't miss out!`
      }
 }
