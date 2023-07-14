@@ -14,7 +14,6 @@ import { UserEntity } from "../user/entities/user.entity";
 @UseGuards(JwtAuthGuard)
 export class AuthController {
      constructor(private authService: AuthService) { }
-
      @IsPublic()
      @Post('/signup')
      async signUpLocal(@Body() signupDto: SignUpDto): Promise<JwtResponse> {

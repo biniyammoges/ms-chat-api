@@ -36,6 +36,16 @@ export class UserService {
           return file
      }
 
+     /**
+      * @desc check if username is already taken and return true if not taken otherwise false
+      * @param username - string
+      * @returns true or false value
+      */
+     async checkUsername(username: string) {
+          const count = await this.userRepo.count({ where: { username } });
+          return { valid: !count }
+     }
+
      async findUserByUsername(username: string) {
           const user = await this.userRepo.findOneBy({ username });
           if (!user) {

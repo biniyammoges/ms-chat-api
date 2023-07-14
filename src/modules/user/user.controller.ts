@@ -1,9 +1,10 @@
 import { Body, Controller, Post, UseGuards } from '@nestjs/common';
 import { UserService } from './user.service';
 import { JwtAuthGuard } from '../auth/guards/at.guard';
-import { GetUser } from '../../shared';
+import { GetUser, IsPublic } from '../../shared';
 import { BaseFileDto } from '../file/dto/base-file.dto';
 import { UploadAvatarDto } from './dtos/upload-avatar.dto';
+import { ValidateUsernameDto } from './dtos/validate-username.dto';
 
 @Controller('user')
 @UseGuards(JwtAuthGuard)
@@ -13,5 +14,11 @@ export class UserController {
   @Post('upload/avatar')
   async uploadAvatar(@GetUser('id') userId: string, @Body() data: UploadAvatarDto): Promise<BaseFileDto> {
     return this.userService.uploadAvatar(userId, data)
+  }
+
+  @IsPublic()
+  @Post('validate-username')
+  async checkUsername(@Body() validateUsernameDto: ValidateUsernameDto) {
+    return this.userService.checkUsername(validateUsernameDto.username)
   }
 }
