@@ -1,7 +1,7 @@
 import { AbstractEntity } from "../../../shared";
 import { Column, Entity, JoinColumn, ManyToOne, OneToOne } from "typeorm";
 import { StoryEntity } from "./story.entity";
-import { ChatEntity } from "src/modules/chat/entities/chat.entity";
+import { ChatEntity } from "../../chat/entities/chat.entity";
 
 @Entity()
 export class StoryMessageEntity extends AbstractEntity {

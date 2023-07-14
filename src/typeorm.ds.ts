@@ -13,6 +13,10 @@ import { NotificationEntity } from "./modules/notification/entities/notification
 import { ChatRoomEntity } from "./modules/chat/entities/chat-room.entity";
 import { ChatEntity } from "./modules/chat/entities/chat.entity";
 import { ChatUserEntity } from "./modules/chat/entities/chat-user.entity";
+import { StoryEntity } from "./modules/story/entities/story.entity";
+import { StoryViewerEntity } from "./modules/story/entities/story-viewer.entity";
+import { StoryMessageEntity } from "./modules/story/entities/story-message.entity";
+import { StoryMediaEntity } from "./modules/story/entities/story-media.entity";
 
 let isTsNode = false;
 // https://github.com/TypeStrong/ts-node/issues/846#issuecomment-631828160
@@ -25,7 +29,25 @@ if (process[Symbol.for('ts-node.register.instance')]) {
 const entities: DataSourceOptions['entities'] = [
      path.join(process.cwd(), '/dist/**/*.entity{.js, .ts}'),
      ...(process.env.NODE_ENV === 'test' ?
-          [UserEntity, FollowerEntity, FileEntity, PostEntity, PostMediaEntity, PostLikeEntity, CommentEntity, CommentLikeEntity, SavedPostEntity, NotificationEntity, ChatRoomEntity, ChatEntity, ChatUserEntity] : []),
+          [
+               UserEntity,
+               FollowerEntity,
+               FileEntity,
+               PostEntity,
+               PostMediaEntity,
+               PostLikeEntity,
+               CommentEntity,
+               CommentLikeEntity,
+               SavedPostEntity,
+               NotificationEntity,
+               ChatRoomEntity,
+               ChatEntity,
+               ChatUserEntity,
+               StoryEntity,
+               StoryViewerEntity,
+               StoryMessageEntity,
+               StoryMediaEntity
+          ] : []),
      ...(isTsNode ? [path.join(process.cwd(), 'src/**/*.entity{.ts, .js}')] : [])
 ]
 

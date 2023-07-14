@@ -2,11 +2,10 @@ import { UserEntity } from "../../user/entities/user.entity";
 import { AbstractEntity } from "../../../shared";
 import { Column, Entity, JoinColumn, ManyToOne, OneToOne } from "typeorm";
 import { ChatRoomEntity } from "./chat-room.entity";
-import { StoryMessageEntity } from "src/modules/story/entities/story-message.entity";
+import { StoryMessageEntity } from "../../story/entities/story-message.entity";
 
 @Entity()
 export class ChatEntity extends AbstractEntity {
-
      @Column('uuid', { nullable: true })
      parentChatId?: string
 

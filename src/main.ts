@@ -11,6 +11,8 @@ async function bootstrap() {
   app.useGlobalPipes(new ValidationPipe())
   app.setGlobalPrefix('api')
 
+  app.enableCors()
+
   // Initialize new socket adaptor 
   initalizeWsAdapter(app);
   initalizeRedisSubscriber(app)
@@ -25,7 +27,7 @@ async function bootstrap() {
 
   SwaggerModule.setup('/explorer', app, SwaggerModule.createDocument(app, config));
 
-  const port = process.env.PORT || 3000
+  const port = process.env.PORT || 5000
   await app.listen(port);
   logger.log(`Server started on port ${port}`)
 }
