@@ -42,6 +42,10 @@ export class AuthService {
                throw new BadRequestException(`Email or username is already in use, please choose another one`)
           }
 
+          if (signUpDto.password !== signUpDto.confirmPassword) {
+               throw new BadRequestException("Confirm password don't match")
+          }
+
           const user = this.em.create(UserEntity, { ...signUpDto, password: await hash(signUpDto.password, 10) });
           await this.em.save(user)
 
