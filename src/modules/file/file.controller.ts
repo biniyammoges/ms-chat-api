@@ -20,6 +20,10 @@ export class FileController {
           },
      }))
      uploadImage(@UploadedFile() file: Express.Multer.File, @GetUser('id') creatorId: string) {
+
+          if (!file) {
+               throw new BadRequestException('File is required!')
+          }
           const fileName = `${file.originalname}-${Date.now()}`
           return this.fileService.upload({ ...file, originalname: fileName }, creatorId)
      }

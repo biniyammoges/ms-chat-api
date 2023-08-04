@@ -25,7 +25,8 @@ import { StoryModule } from './modules/story/story.module';
       isGlobal: true,
       load: [globalConfig],
       envFilePath: ['.env', '.env.local', `.env.${process.env.NODE_ENV}.local`]
-    }), TypeOrmModule.forRootAsync({
+    }),
+    TypeOrmModule.forRootAsync({
       async useFactory(...args) {
         const ds = await import('./typeorm.ds');
         return ds.ds

@@ -2,8 +2,8 @@ version: '3.8'
 
 services:
   #database service
-  mysqldb:
-    container_name: mysqldb
+  mysql_db:
+    container_name: mysql
     image: mysql:8.0
     ports:
       - 3306:3306
@@ -12,8 +12,8 @@ services:
       MYSQL_USER: 'user'
       MYSQL_PASSWORD: 'password'
       MYSQL_ROOT_PASSWORD: 'password'
-    volumes:
-      - mysql:/var/lib/mysql
+    # volumes:
+    #   - mysql:/var/lib/mysql
     restart: unless-stopped
 
   #phpmyadmin service
@@ -21,7 +21,7 @@ services:
     image: phpmyadmin/phpmyadmin:latest
     restart: always
     environment:
-      PMA_HOST: mysqldb
+      PMA_HOST: mysql_db
       PMA_USER: user
       PMA_PASSWORD: password
     ports:
@@ -31,30 +31,24 @@ services:
   redis:
     container_name: redis
     image: redis:5
-    networks:
-      - api-network
 
   #api service
   api:
-    container_name: ms-api
+    container_name: donnet-api
     build:
       context: .
       target: development
-    networks:
-      - api-network
     ports:
-      - 3001:3001
+      - 3001:5000
     command: npm run start:dev
     env_file:
       - .env
     depends_on:
-      - mysqldb
+      - mysql_db
       - redis
     volumes:
       - .:/app
-
-networks:
-  api-network:
+      - '/app/node_modules'
 
 volumes:
   mysql:
