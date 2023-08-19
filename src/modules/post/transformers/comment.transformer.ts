@@ -14,6 +14,7 @@ export class CommentTransformer {
                ...(entity.commentor && { commentor: this.userTransformer.entityToDto(entity.commentor) }),
                likeCount: entity.likeCount || 0,
                replyCount: entity.replyCount || 0,
+               liked: entity.liked ?? false
           }
 
           return result

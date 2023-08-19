@@ -75,14 +75,14 @@ export class PostController {
   }
 
   @Get('post/:postId/comments')
-  async retrieveComments(@Param() postIdDto: PostIdDto, @Query('limit') limit: number = 20, @Query('page') page: number = 1): Promise<PaginationEntity<BaseCommentDto>> {
-    const { data: comments, total } = await this.postService.retrieveComments(postIdDto, { limit, page })
+  async retrieveComments(@Param() postIdDto: PostIdDto, @GetUser('id') userId: string, @Query('limit') limit: number = 20, @Query('page') page: number = 1): Promise<PaginationEntity<BaseCommentDto>> {
+    const { data: comments, total } = await this.postService.retrieveComments(postIdDto, userId, { limit, page })
     return { data: comments.map(comment => this.commentTransformer.entityToDto(comment)), total }
   }
 
-  @Get('comment/:commentId/retrieve')
-  async retrieveCommentReplies(@Param() commentIdDto: CommentIdDto, @Query('limit') limit: number = 20, @Query('page') page: number = 1): Promise<PaginationEntity<BaseCommentDto>> {
-    const { data: replies, total } = await this.postService.retrieveCommentReplies(commentIdDto, { limit, page })
+  @Get('comment/:commentId/replies')
+  async retrieveCommentReplies(@Param() commentIdDto: CommentIdDto, @GetUser('id') userId: string, @Query('limit') limit: number = 20, @Query('page') page: number = 1): Promise<PaginationEntity<BaseCommentDto>> {
+    const { data: replies, total } = await this.postService.retrieveCommentReplies(commentIdDto, userId, { limit, page })
     return { data: replies.map(comment => this.commentTransformer.entityToDto(comment)), total }
   }
 

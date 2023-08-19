@@ -24,7 +24,7 @@ export class CommentEntity extends AbstractEntity {
      @JoinColumn({ name: "commentorId" })
      commentor?: UserEntity
 
-     @Column()
+     @Column('longtext')
      text: string
 
      @Column('uuid', { nullable: true })
@@ -42,4 +42,7 @@ export class CommentEntity extends AbstractEntity {
 
      @VirtualColumn()
      replyCount?: number
+
+     @VirtualColumn()
+     liked?: boolean
 }

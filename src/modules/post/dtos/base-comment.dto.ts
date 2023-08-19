@@ -15,4 +15,5 @@ export class BaseCommentDto extends BaseDto {
      likes: BaseCommentLikeDto[]
      likeCount?: number
      replyCount?: number
+     liked?: boolean
 }

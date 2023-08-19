@@ -13,7 +13,7 @@ export class FileController {
      @Post('upload/image')
      @UseInterceptors(FileInterceptor('file', {
           fileFilter(_req, file, callback) {
-               if (!file.originalname.match(/\.(jpg|jpeg|png)$/)) {
+               if (!file.originalname.match(/\.(jpg|JPG|jpeg|JPEG|png|PNG)$/)) {
                     return callback(new Error('Only image files are allowed!'), false);
                }
                callback(null, true);

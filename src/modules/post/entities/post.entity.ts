@@ -12,7 +12,7 @@ export class PostEntity extends AbstractEntity {
      @Column('uuid')
      creatorId: string;
 
-     @Column({ nullable: true })
+     @Column('longtext', { nullable: true })
      caption?: string;
 
      @ManyToOne(() => UserEntity, { onDelete: "CASCADE", onUpdate: 'CASCADE' })
@@ -39,4 +39,7 @@ export class PostEntity extends AbstractEntity {
 
      @VirtualColumn()
      commentCount?: number
+
+     @VirtualColumn()
+     liked?: boolean
 }

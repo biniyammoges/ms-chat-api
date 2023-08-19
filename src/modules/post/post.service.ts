@@ -152,7 +152,7 @@ export class PostService {
           const [posts, total] = await this.em.createQueryBuilder(PostEntity, 'p')
                .innerJoinAndSelect("p.creator", "creator")
                .leftJoinAndSelect("creator.avatar", 'avatar')
-               .innerJoin("creator.followers", "followers")
+               .leftJoinAndSelect("creator.followers", "followers")
                .where("followers.followerId = :followerId", { followerId: fetchorId })
                .orWhere("creator.id = :fetchorId", { fetchorId })
                .loadRelationCountAndMap('p.commentCount', 'p.comments')
@@ -164,7 +164,14 @@ export class PostService {
                .limit(filter.limit)
                .getManyAndCount();
 
-          return new PaginationEntity({ data: posts, total })
+          for (const post of posts) {
+               const isLiked = await this.em.findOne(PostLikeEntity, { where: { likerId: fetchorId, postId: post.id } });
+               post.liked = !!isLiked
+          }
+
+          return new PaginationEntity({
+               data: posts, total
+          })
      }
 
      async retrieveMyPosts(myId: string, filter: PaginationDto) {
@@ -178,6 +185,11 @@ export class PostService {
                .skip((filter.page - 1) * filter.limit)
                .limit(filter.limit)
                .getManyAndCount();
+
+          for (const post of posts) {
+               const isLiked = await this.em.findOne(PostLikeEntity, { where: { likerId: myId, postId: post.id } });
+               post.liked = !!isLiked
+          }
 
           return new PaginationEntity({ data: posts, total })
      }
@@ -349,7 +361,7 @@ export class PostService {
           return commentDto
      }
 
-     async retrieveComments(data: PostIdDto, filter: PaginationDto = { page: 1, limit: 15 }): Promise<PaginationEntity<CommentEntity>> {
+     async retrieveComments(data: PostIdDto, retrieverId: string, filter: PaginationDto = { page: 1, limit: 15 }): Promise<PaginationEntity<CommentEntity>> {
           const post = await this.em.findOne(PostEntity, { where: { id: data.postId } })
           if (!post) throw new BadRequestException()
 
@@ -363,11 +375,16 @@ export class PostService {
                .limit(filter.limit)
                .getManyAndCount();
 
+          for (const comment of comments) {
+               const isLiked = await this.em.findOne(CommentLikeEntity, { where: { likerId: retrieverId, commentId: comment.id } });
+               comment.liked = !!isLiked
+          }
+
           return new PaginationEntity({ data: comments, total })
      }
 
-     async retrieveCommentReplies(data: CommentIdDto, filter: PaginationDto = { page: 1, limit: 15 }): Promise<PaginationEntity<CommentEntity>> {
-          const comment = await this.em.findOne(CommentEntity, { where: { parentCommentId: data.commentId } })
+     async retrieveCommentReplies(data: CommentIdDto, retrieverId: string, filter: PaginationDto = { page: 1, limit: 15 }): Promise<PaginationEntity<CommentEntity>> {
+          const comment = await this.em.findOne(CommentEntity, { where: { id: data.commentId } })
           if (!comment) throw new BadRequestException('Comment Not Found')
 
           const [comments, total] = await this.em.createQueryBuilder(CommentEntity, 'comment')
@@ -379,6 +396,11 @@ export class PostService {
                .skip((filter.page - 1) * filter.limit)
                .limit(filter.limit)
                .getManyAndCount();
+
+          for (const comment of comments) {
+               const isLiked = await this.em.findOne(CommentLikeEntity, { where: { likerId: retrieverId, commentId: comment.id } });
+               comment.liked = !!isLiked
+          }
 
           return new PaginationEntity({ data: comments, total })
      }
