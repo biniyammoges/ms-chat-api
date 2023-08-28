@@ -15,6 +15,7 @@ export class UserTransformer {
                ...(entity.bio && { bio: entity.bio }),
                ...(entity.location && { location: entity.location }),
                ...(entity.phone && { phone: entity.phone }),
+               ...(entity.avatarId && { avatarId: entity.avatarId }),
                ...(entity.avatar && { avatar: entity.avatar }),
           }
 

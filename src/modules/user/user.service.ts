@@ -86,4 +86,16 @@ export class UserService {
                     lastSeen: opts.markAsOnline ? null : new Date()
                })
      }
+
+     async searchUser(kywrd: string, searcher: string) {
+          const users = await this.em.createQueryBuilder(UserEntity, 'u')
+               .where('LOWER(u.firstName) LIKE (:fKey)', { fKey: `%${kywrd}%` })
+               .orWhere('LOWER(u.lastname) LIKE (:lKey)', { lKey: `%${kywrd}%` })
+               .orWhere('LOWER(u.email) LIKE (:eKey)', { eKey: `%${kywrd}%` })
+               .orWhere('LOWER(u.username) LIKE (:uKey)', { uKey: `%${kywrd}%` })
+               .leftJoinAndSelect('u.avatar', 'avatar')
+               .getMany();
+
+          return users.map(u => this.userTransformer.entityToDto(u))
+     }
 }
