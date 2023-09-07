@@ -11,6 +11,8 @@ import { UserEntity } from '../user/entities/user.entity';
 import { PostTransformer } from './transformers/post.transformer';
 import { PostLikeTransformer } from './transformers/like.transformer';
 import { CommentTransformer } from './transformers/comment.transformer';
+import { ValidateUsernameDto } from '../user/dtos/validate-username.dto';
+import { PostFilterDto } from './dtos/post-filter.dto';
 
 @Controller()
 @UseGuards(JwtAuthGuard)
@@ -37,8 +39,8 @@ export class PostController {
   }
 
   @Get('post/retrieve/feed')
-  async retrievePosts(@GetUser('id') fetcherId: string, @Query('limit') limit: number = 20, @Query('page') page: number = 1): Promise<PaginationEntity<BasePostDto>> {
-    const { data: posts, total } = await this.postService.retrievePosts(fetcherId, { limit, page })
+  async retrievePosts(@GetUser('id') fetcherId: string, @Query('limit') limit: number = 20, @Query('page') page: number = 1, @Query() usernameDto: PostFilterDto): Promise<PaginationEntity<BasePostDto>> {
+    const { data: posts, total } = await this.postService.retrievePosts(fetcherId, { limit, page, username: usernameDto.username })
     return { data: posts.map(post => this.postTransformer.entityToDto(post)), total }
   }
 

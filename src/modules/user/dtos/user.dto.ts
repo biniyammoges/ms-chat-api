@@ -13,4 +13,7 @@ export class UserDto {
      avatar?: BaseFileDto;
      avatarId?: string;
      birthDate?: Date;
+     postCount?: number
+     followerCount?: number
+     followingCount?: number
 };

@@ -72,6 +72,7 @@ export class UserEntity extends AbstractEntity {
      @OneToMany(() => NotificationEntity, ne => ne.receiver)
      notifications: NotificationEntity[]
 
+     postCount?: number
      followerCount?: number
      followingCount?: number
 }

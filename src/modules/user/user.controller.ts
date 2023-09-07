@@ -1,4 +1,4 @@
-import { Body, Controller, Get, Post, Query, UseGuards } from '@nestjs/common';
+import { Body, Controller, Get, Param, Post, Query, UseGuards } from '@nestjs/common';
 import { UserService } from './user.service';
 import { JwtAuthGuard } from '../auth/guards/at.guard';
 import { GetUser, IsPublic } from '../../shared';
@@ -26,5 +26,10 @@ export class UserController {
   @Get('search')
   async searchUser(@Query() qry: SearchUserDto, @GetUser('id') userId: string) {
     return this.userService.searchUser(qry.keyword, userId)
+  }
+
+  @Get('find/:username')
+  async findByUsername(@Param() usernameDto: ValidateUsernameDto) {
+    return this.userService.findUserByUsername(usernameDto.username, { postCount: true, followerCount: true })
   }
 }

@@ -24,6 +24,7 @@ import { CommentTransformer } from './transformers/comment.transformer';
 import { FileEntity } from '../file/file.entity';
 import { NotificationService } from '../notification/notification.service';
 import { NotificationType } from '../notification/entities/notification.entity';
+import { PostFilterDto } from './dtos/post-filter.dto';
 
 @Injectable()
 export class PostService {
@@ -148,22 +149,32 @@ export class PostService {
      }
 
      // TODO - retrieve posts with comments like and replies
-     async retrievePosts(fetchorId: string, filter: PaginationDto) {
-          const [posts, total] = await this.em.createQueryBuilder(PostEntity, 'p')
+     async retrievePosts(fetchorId: string, filter: PostFilterDto) {
+          const postQry = this.em.createQueryBuilder(PostEntity, 'p')
                .innerJoinAndSelect("p.creator", "creator")
                .leftJoinAndSelect("creator.avatar", 'avatar')
-               .leftJoinAndSelect("creator.followers", "followers")
-               .where("followers.followerId = :followerId", { followerId: fetchorId })
-               .orWhere("creator.id = :fetchorId", { fetchorId })
                .loadRelationCountAndMap('p.commentCount', 'p.comments')
                .loadRelationCountAndMap('p.likeCount', 'p.likes')
                .leftJoinAndSelect('p.medias', 'medias')
                .leftJoinAndSelect('medias.file', 'file')
-               .orderBy("p.createdAt", "DESC")
+
+          // find posts by creators username
+          if (filter?.username) {
+               postQry.andWhere('creator.username = :username', { username: filter.username })
+          }
+
+          else {
+               postQry.leftJoinAndSelect("creator.followers", "followers")
+                    .where("followers.followerId = :followerId", { followerId: fetchorId })
+                    .orWhere("creator.id = :fetchorId", { fetchorId })
+          }
+
+          postQry.orderBy("p.createdAt", "DESC")
                .skip((filter.page - 1) * filter.limit)
                .limit(filter.limit)
-               .getManyAndCount();
 
+
+          const [posts, total] = await postQry.getManyAndCount()
           for (const post of posts) {
                const isLiked = await this.em.findOne(PostLikeEntity, { where: { likerId: fetchorId, postId: post.id } });
                post.liked = !!isLiked

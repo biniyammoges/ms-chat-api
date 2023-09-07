@@ -46,10 +46,24 @@ export class UserService {
           return { valid: !count }
      }
 
-     async findUserByUsername(username: string) {
-          const user = await this.userRepo.findOneBy({ username });
+     async findUserByUsername(username: string, relations?: Record<string, boolean>) {
+          const qry = await this.em.createQueryBuilder(UserEntity, 'u')
+               .where('u.username = :username', { username })
+               .leftJoinAndSelect('u.avatar', 'avatar');
+
+          if (relations.followerCount) {
+               qry.loadRelationCountAndMap('u.followerCount', 'u.followers')
+                    .loadRelationCountAndMap('u.followingCount', 'u.followings')
+          }
+
+          if (relations.postCount) {
+               qry.loadRelationCountAndMap('u.postCount', 'u.posts')
+          }
+
+          const user = await qry.getOne();
+
           if (!user) {
-               throw new BadRequestException('User not found with provided username')
+               throw new BadRequestException(`No user with username ${username}`)
           }
 
           return this.userTransformer.entityToDto(user);
