@@ -6,6 +6,7 @@ import { BaseFileDto } from '../file/dto/base-file.dto';
 import { UploadAvatarDto } from './dtos/upload-avatar.dto';
 import { ValidateUsernameDto } from './dtos/validate-username.dto';
 import { SearchUserDto } from './dtos/search-user.dto';
+import { UserEntity } from './entities/user.entity';
 
 @Controller('user')
 @UseGuards(JwtAuthGuard)
@@ -29,7 +30,7 @@ export class UserController {
   }
 
   @Get('find/:username')
-  async findByUsername(@Param() usernameDto: ValidateUsernameDto) {
-    return this.userService.findUserByUsername(usernameDto.username, { postCount: true, followerCount: true })
+  async findByUsername(@Param() usernameDto: ValidateUsernameDto, @GetUser() user: UserEntity) {
+    return this.userService.findUserByUsername(usernameDto.username, { postCount: true, followerCount: true }, user)
   }
 }

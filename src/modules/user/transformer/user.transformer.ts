@@ -17,9 +17,10 @@ export class UserTransformer {
                ...(entity.phone && { phone: entity.phone }),
                ...(entity.avatarId && { avatarId: entity.avatarId }),
                ...(entity.avatar && { avatar: entity.avatar }),
-               ...(entity?.followerCount && { followerCount: entity.followerCount }),
-               ...(entity?.followingCount && { followingCount: entity.followingCount }),
-               ...(entity?.postCount && { postCount: entity.postCount }),
+               ...(entity?.followerCount > -1 && { followerCount: entity.followerCount }),
+               ...(entity?.followingCount > -1 && { followingCount: entity.followingCount }),
+               ...(entity?.postCount > -1 && { postCount: entity.postCount }),
+               ...(entity?.savedPostCount > -1 && { savedPostCount: entity.savedPostCount }),
           }
 
           return result

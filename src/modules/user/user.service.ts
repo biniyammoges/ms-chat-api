@@ -46,18 +46,22 @@ export class UserService {
           return { valid: !count }
      }
 
-     async findUserByUsername(username: string, relations?: Record<string, boolean>) {
+     async findUserByUsername(username: string, relations?: Record<string, boolean>, fetchor?: UserEntity) {
           const qry = await this.em.createQueryBuilder(UserEntity, 'u')
                .where('u.username = :username', { username })
                .leftJoinAndSelect('u.avatar', 'avatar');
 
-          if (relations.followerCount) {
+          if (relations?.followerCount) {
                qry.loadRelationCountAndMap('u.followerCount', 'u.followers')
                     .loadRelationCountAndMap('u.followingCount', 'u.followings')
           }
 
-          if (relations.postCount) {
+          if (relations?.postCount) {
                qry.loadRelationCountAndMap('u.postCount', 'u.posts')
+          }
+
+          if (fetchor?.username === username) {
+               qry.loadRelationCountAndMap('u.savedPostCount', 'u.savedPosts')
           }
 
           const user = await qry.getOne();
