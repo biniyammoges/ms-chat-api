@@ -6,6 +6,7 @@ import { UserTransformer } from './transformer/user.transformer';
 import { UserDto } from './dtos/user.dto';
 import { UploadAvatarDto } from './dtos/upload-avatar.dto';
 import { FileEntity } from '../file/file.entity';
+import { FollowerEntity } from '../follower/entities/follower.entity';
 
 @Injectable()
 export class UserService {
@@ -47,6 +48,7 @@ export class UserService {
      }
 
      async findUserByUsername(username: string, relations?: Record<string, boolean>, fetchor?: UserEntity) {
+          const isFetchingSelf = fetchor?.username === username
           const qry = await this.em.createQueryBuilder(UserEntity, 'u')
                .where('u.username = :username', { username })
                .leftJoinAndSelect('u.avatar', 'avatar');
@@ -60,7 +62,7 @@ export class UserService {
                qry.loadRelationCountAndMap('u.postCount', 'u.posts')
           }
 
-          if (fetchor?.username === username) {
+          if (isFetchingSelf) {
                qry.loadRelationCountAndMap('u.savedPostCount', 'u.savedPosts')
           }
 
@@ -68,6 +70,12 @@ export class UserService {
 
           if (!user) {
                throw new BadRequestException(`No user with username ${username}`)
+          }
+
+          if (!isFetchingSelf) {
+               const following = await this.em.count(FollowerEntity,
+                    { where: { followeeId: user?.id, followerId: fetchor?.id } })
+               user.following = !!following
           }
 
           return this.userTransformer.entityToDto(user);

@@ -17,4 +17,5 @@ export class UserDto {
      followerCount?: number
      followingCount?: number
      savedPostCount?: number
+     following?: boolean
 };

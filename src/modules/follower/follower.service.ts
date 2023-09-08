@@ -34,10 +34,12 @@ export class FollowerService {
           if (fetchFollowers) {
                followerQry.innerJoin('f.followee', 'followee')
                     .innerJoinAndSelect('f.follower', 'follower')
+                    .leftJoinAndSelect('follower.avatar', 'avatar')
                     .where('followee.username = :username', { username })
           } else {
                followerQry.innerJoin('f.follower', 'follower')
                     .innerJoinAndSelect('f.followee', 'followee')
+                    .leftJoinAndSelect('followee.avatar', 'avatar')
                     .where('follower.username = :username', { username })
           }
 

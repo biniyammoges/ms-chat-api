@@ -76,4 +76,5 @@ export class UserEntity extends AbstractEntity {
      followerCount?: number;
      followingCount?: number;
      savedPostCount?: number;
+     following?: boolean; // tells if the finder follows user
 }

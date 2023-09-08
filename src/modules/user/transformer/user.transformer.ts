@@ -21,6 +21,7 @@ export class UserTransformer {
                ...(entity?.followingCount > -1 && { followingCount: entity.followingCount }),
                ...(entity?.postCount > -1 && { postCount: entity.postCount }),
                ...(entity?.savedPostCount > -1 && { savedPostCount: entity.savedPostCount }),
+               ...(entity?.following && { following: entity.following }),
           }
 
           return result
