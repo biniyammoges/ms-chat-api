@@ -1,4 +1,5 @@
-import { IsEmail, Length } from "class-validator";
+import { Type } from "class-transformer";
+import { IsDate, IsEmail, IsOptional, IsPhoneNumber, IsString, IsUrl, Length } from "class-validator";
 
 export class UpdateMeDto {
      @Length(3, 30)
@@ -16,10 +17,20 @@ export class UpdateMeDto {
      @Length(8, 30)
      password: string;
 
-
-     phone?: string;
-     bio?: string;
-     location?: string;
-     website?: string;
+     @IsOptional()
+     @Type(() => Date)
+     @IsDate({ message: "Date of birth must be a date instance", })
      birthDate: Date;
+
+     @IsOptional()
+     @Length(10, 60)
+     bio?: string
+
+     @IsString()
+     @IsOptional()
+     location?: string;
+
+     @IsUrl()
+     @IsOptional()
+     website?: string;
 }

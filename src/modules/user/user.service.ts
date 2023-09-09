@@ -120,6 +120,7 @@ export class UserService {
                .orWhere('LOWER(u.email) LIKE (:eKey)', { eKey: `%${kywrd}%` })
                .orWhere('LOWER(u.username) LIKE (:uKey)', { uKey: `%${kywrd}%` })
                .leftJoinAndSelect('u.avatar', 'avatar')
+               .loadRelationCountAndMap('u.followerCount', 'u.followers')
                .getMany();
 
           return users.map(u => this.userTransformer.entityToDto(u))

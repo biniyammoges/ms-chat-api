@@ -5,10 +5,12 @@ import { SignUpDto } from "../dtos/signup.dto";
 import { UserEntity } from "../../user/entities/user.entity";
 import { JwtPaylaod, JwtResponse } from "../dtos/jwt-auth.dto";
 import { JwtService } from "@nestjs/jwt";
-import { compare, hash } from 'bcrypt'
+import { compare, hash, hashSync } from 'bcrypt'
 import { SignInDto } from "../dtos/signin.dto";
 import { UserTransformer } from "../../user/transformer/user.transformer";
 import { UserDto } from "../../user/dtos/user.dto";
+import { UpdateMeDto } from "../dtos";
+import merge from "ts-deepmerge";
 
 @Injectable()
 export class AuthService {
@@ -112,5 +114,29 @@ export class AuthService {
           })])
 
           return { accessToken, refreshToken }
+     }
+
+     async updateMe(data: UpdateMeDto, user: UserEntity): Promise<Partial<UserDto>> {
+          const passwordMatch = await compare(data.password, user?.password);
+          if (!passwordMatch)
+               throw new BadRequestException('Password is incorrect please try again')
+
+          const usernameTaken = await this.em.findOne(UserEntity, { where: { id: Not(user.id), username: data.username } })
+          const emailTaken = await this.em.findOne(UserEntity, { where: { id: Not(user.id), email: data.email } })
+
+          if (usernameTaken)
+               throw new BadRequestException(`Username ${data.username} is not available`)
+          if (emailTaken)
+               throw new BadRequestException(`Email ${data.email} is not available`)
+
+          await this.em.update(UserEntity, { id: user?.id }, {
+               ...(data?.firstName !== user?.firstName && { firstName: data.firstName }),
+               ...(data?.lastName !== user?.lastName && { lastName: data.lastName }),
+               ...(data?.email !== user?.email && { email: data.email }),
+               ...(data?.username !== user?.username && { username: data.username }),
+               ...(data?.bio !== user?.bio && { bio: data.bio }),
+          })
+
+          return this.userTransformer.entityToDto(merge(user, data))
      }
 }

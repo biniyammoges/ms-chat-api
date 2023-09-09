@@ -1,4 +1,4 @@
-import { Body, Controller, Get, Post, UseGuards } from "@nestjs/common";
+import { Body, Controller, Get, Post, Put, UseGuards } from "@nestjs/common";
 import { SignUpDto } from "./dtos/signup.dto";
 import { AuthService } from "./services/auth.service";
 import { JwtResponse } from "./dtos/jwt-auth.dto";
@@ -9,6 +9,7 @@ import { GetUser } from "../../shared/get-user.decrator";
 import { UserDto } from "../user/dtos/user.dto";
 import { JwtAuthGuard } from "./guards/at.guard";
 import { UserEntity } from "../user/entities/user.entity";
+import { UpdateMeDto } from "./dtos";
 
 @Controller('auth')
 @UseGuards(JwtAuthGuard)
@@ -41,5 +42,10 @@ export class AuthController {
      @Get('me')
      async getMe(@GetUser('id') userId: string): Promise<UserDto> {
           return this.authService.getMe(userId);
+     }
+
+     @Put('me/update')
+     async updateMe(@Body() data: UpdateMeDto, @GetUser() user: UserEntity) {
+          return this.authService.updateMe(data, user)
      }
 }
