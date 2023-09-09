@@ -28,7 +28,8 @@ export class PostTransformer {
                })) : [],
                likeCount: entity.likeCount || 0,
                commentCount: entity.commentCount || 0,
-               liked: entity.liked
+               liked: entity.liked,
+               saved: entity.saved,
           }
 
           return result

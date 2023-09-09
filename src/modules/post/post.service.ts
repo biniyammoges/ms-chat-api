@@ -173,11 +173,11 @@ export class PostService {
                .skip((filter.page - 1) * filter.limit)
                .limit(filter.limit)
 
-
           const [posts, total] = await postQry.getManyAndCount()
           for (const post of posts) {
-               const isLiked = await this.em.findOne(PostLikeEntity, { where: { likerId: fetchorId, postId: post.id } });
+               const [isLiked, isSaved] = await Promise.all([this.em.findOne(PostLikeEntity, { where: { likerId: fetchorId, postId: post.id } }), this.em.findOne(SavedPostEntity, { where: { postId: post?.id, userId: fetchorId } })]);
                post.liked = !!isLiked
+               post.saved = !!isSaved
           }
 
           return new PaginationEntity({
@@ -198,8 +198,12 @@ export class PostService {
                .getManyAndCount();
 
           for (const post of posts) {
-               const isLiked = await this.em.findOne(PostLikeEntity, { where: { likerId: myId, postId: post.id } });
+               const [isLiked, isSaved] = await Promise.all([
+                    this.em.findOne(PostLikeEntity, { where: { likerId: myId, postId: post.id } }),
+                    this.em.findOne(SavedPostEntity, { where: { postId: post?.id, userId: myId } })
+               ]);
                post.liked = !!isLiked
+               post.saved = !!isSaved
           }
 
           return new PaginationEntity({ data: posts, total })
@@ -450,6 +454,32 @@ export class PostService {
           }
 
           return this.em.save(this.em.create(SavedPostEntity, { userId, ...postIdDto }))
+     }
+
+     async retrieveSavedPosts(retrieverId: string) {
+          const savedPosts = await this.em.createQueryBuilder(SavedPostEntity, 'sp')
+               .where('sp.userId = :retrieverId', { retrieverId })
+               .leftJoinAndSelect('sp.post', 'post')
+               .leftJoinAndSelect('post.medias', 'medias')
+               .leftJoinAndSelect('medias.file', 'file')
+               .leftJoinAndSelect('post.creator', 'creator')
+               .leftJoinAndSelect('creator.avatar', 'avatar')
+               .loadRelationCountAndMap('post.commentCount', 'post.comments')
+               .loadRelationCountAndMap('post.likeCount', 'post.likes').getMany()
+
+          for (const post of savedPosts.map(sp => sp?.post)) {
+               const [isLiked, isSaved] = await Promise.all([
+                    this.em.findOne(PostLikeEntity, { where: { likerId: retrieverId, postId: post.id } }),
+                    this.em.findOne(SavedPostEntity, { where: { postId: post?.id, userId: retrieverId } })
+               ]);
+               post.liked = !!isLiked
+               post.saved = !!isSaved
+          }
+
+          return savedPosts.map(sp => ({
+               ...sp,
+               post: this.postTransformer.entityToDto(sp.post)
+          }))
      }
 
      async updateComment(commentId: string, data: UpdateCommentDto, userId: string) {

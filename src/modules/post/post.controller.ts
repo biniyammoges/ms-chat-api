@@ -66,6 +66,11 @@ export class PostController {
     return this.postService.savePost(postIdDto, userId, !!savePostStatusDto.unsave)
   }
 
+  @Get('post/retrieve/saved')
+  async retrieveSaved(@GetUser('id') userId: string) {
+    return this.postService.retrieveSavedPosts(userId)
+  }
+
   @Post('comment/create')
   async createComment(@GetUser() user: UserEntity, @Body() commentDto: CreateCommentDto): Promise<BaseCommentDto> {
     return this.postService.createComment(commentDto, user)

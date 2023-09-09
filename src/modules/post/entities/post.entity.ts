@@ -42,4 +42,6 @@ export class PostEntity extends AbstractEntity {
 
      @VirtualColumn()
      liked?: boolean
+     @VirtualColumn()
+     saved?: boolean
 }

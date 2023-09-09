@@ -10,6 +10,7 @@ export class BasePostDto extends BaseDto {
      likeCount?: number
      commentCount?: number
      liked?: boolean
+     saved?: boolean
 }
 
 export class BasePostMediaDto extends BaseDto {
