@@ -8,7 +8,7 @@ import { SocketStateService } from '../../shared/modules/socket-state/socket-sta
 import { AuthSocket } from '../../shared/modules/socket-state/socket.adapter';
 import { WebsocketExceptionsFilter } from '../../exceptions/ws-exception';
 
-@WebSocketGateway()
+@WebSocketGateway({ cors: { origin: '*' } })
 @UsePipes(new ValidationPipe({ whitelist: true, transform: true }))
 @UseFilters(WebsocketExceptionsFilter)
 export class PostGateway {

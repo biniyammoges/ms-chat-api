@@ -1,6 +1,6 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectEntityManager } from '@nestjs/typeorm';
-import { EntityManager } from 'typeorm';
+import { EntityManager, Not } from 'typeorm';
 import { PaginationDto } from '../../shared';
 import { ChatRoomEntity, ChatRoomType } from './entities/chat-room.entity';
 import { ChatEntity } from './entities/chat.entity';
@@ -10,22 +10,26 @@ import { WsException } from '@nestjs/websockets';
 import { JoinChatRoomDto } from './dtos/join-or-leave-chat-room.dto';
 import { UserService } from '../user/user.service'
 import { CreateStoryMessageDto } from '../story/dtos/create-story-message.dto';
+import { ChatTransformer } from './chat.transformer';
+import { BaseChatRoomDto } from './dtos/base-chat-room.dto';
+import merge from 'ts-deepmerge';
 
 @Injectable()
 export class ChatService {
      constructor(
           @InjectEntityManager()
           private em: EntityManager,
-          private userService: UserService
+          private userService: UserService,
+          private chatTransformer: ChatTransformer
      ) { }
 
-     async findOrCreateChatRoom(data: JoinChatRoomDto, finderOrCreatorId: string) {
+     async findOrCreateChatRoom(data: JoinChatRoomDto, finderOrCreatorId: string): Promise<BaseChatRoomDto> {
           if (data.recipientId === finderOrCreatorId) {
                throw new WsException("You can't join room with your own Id")
           }
 
           // throws error if user not found with recipientId
-          await this.userService.findUserById(data.recipientId)
+          await this.userService.findUserById(data.recipientId, { avatar: true })
           const roomQry = await this.em.createQueryBuilder(ChatRoomEntity, 'cr');
 
           if (data.chatRoomId) {
@@ -33,23 +37,32 @@ export class ChatService {
           }
 
           const chatRoom = await roomQry
-               .innerJoin('cr.chatUsers', 'chatUsers1', 'chatUsers1.userId = :recipientId', { recipientId: data.recipientId })
+               .innerJoinAndSelect('cr.chatUsers', 'chatUsers1', 'chatUsers1.userId = :recipientId', { recipientId: data.recipientId })
+               .leftJoinAndSelect('chatUsers1.user', 'user')
+               .leftJoinAndSelect('user.avatar', 'user.avatar')
                .innerJoin('cr.chatUsers', 'chatUsers2', 'chatUsers2.userId = :finderOrCreatorId', { finderOrCreatorId: finderOrCreatorId })
+               .loadRelationCountAndMap('cr.unreadCount', 'cr.chats', 'c', qb => qb
+                    .where('c.isSeen = :isSeen', { isSeen: false })
+                    .andWhere('c.senderId != :senderId', { senderId: finderOrCreatorId }))
                .getOne();
 
           if (chatRoom)
                return chatRoom
           else {
-               return this.em.save(this.em.create(ChatRoomEntity, {
+               const savedChatRoom = await this.em.save(this.em.create(ChatRoomEntity, {
                     chatUsers: [
                          { userId: data.recipientId },
                          { userId: finderOrCreatorId }
                     ]
-               }))
+               },))
+
+               // returns the recipient user
+               const newChatRoom = await this.em.findOne(ChatRoomEntity, { where: { id: savedChatRoom.id }, relations: { chatUsers: { user: { avatar: true } } } })
+               return { ...newChatRoom, chatUsers: newChatRoom.chatUsers.filter(cu => cu.userId !== finderOrCreatorId), chats: [] }
           }
      }
 
-     async retrieveChatRooms(userId: string, filter?: PaginationDto): Promise<[ChatRoomEntity[], number]> {
+     async retrieveChatRooms(userId: string, filter?: PaginationDto): Promise<[BaseChatRoomDto[], number]> {
           const qry = await this.em.createQueryBuilder(ChatRoomEntity, 'cr')
                .leftJoin('cr.chats', 'chats')
                .loadRelationCountAndMap('cr.unreadCount', 'cr.chats', 'c', qb => qb
@@ -80,7 +93,7 @@ export class ChatService {
                room.chats = chat ? [chat] : []
           }
 
-          return [rooms, total]
+          return [rooms.map(r => this.chatTransformer.entityToDto(r)), total]
      }
 
      /**
@@ -136,7 +149,7 @@ export class ChatService {
                .leftJoinAndSelect('c.parentChat', 'parentChat')
                .leftJoinAndSelect('c.storyMessage', 'storyMessage')
                .leftJoinAndSelect('storyMessage.story', 'story')
-               .orderBy('c.createdAt', 'DESC');
+               .orderBy('c.createdAt', 'ASC');
 
           if (filter.limit && filter.page) {
                chatQry.skip((filter.page - 1) * filter.limit)
@@ -154,9 +167,9 @@ export class ChatService {
       * @param param0 - has two properties chatRoomId and userId, userId is to filter message not sent by userId
       * @returns 
       */
-     async maskAllMessagesAsSeen({ chatRoomId, userId, readerId }: { userId: string, chatRoomId: string, readerId: string }) {
+     async maskAllMessagesAsSeen({ chatRoomId, readerId }: { chatRoomId: string, readerId: string }) {
           const chatUsers = await this.getChatUsers(chatRoomId, { fetcherId: readerId, isFromSocket: true })
-          const response = await this.em.update(ChatEntity, { senderId: userId, chatRoomId, isSeen: false, }, { isSeen: true })
+          const response = await this.em.update(ChatEntity, { senderId: Not(readerId), chatRoomId, isSeen: false, }, { isSeen: true })
           return { seenCount: response.affected, chatRoomId, chatUsers: chatUsers.length ? chatUsers : [] }
      }
 
@@ -175,7 +188,12 @@ export class ChatService {
                validateChatRoom: false // tells not to check for chatroom existance
           });
 
-          const message = await this.em.save(this.em.create(ChatEntity, { ...data, senderId }));
+          const message = await this.em.save(this.em.create(ChatEntity,
+               {
+                    ...data,
+                    chatRoom,
+                    senderId
+               }));
 
           return { message, chatUsers }
      }

@@ -22,6 +22,8 @@ export class UserTransformer {
                ...(entity?.postCount > -1 && { postCount: entity.postCount }),
                ...(entity?.savedPostCount > -1 && { savedPostCount: entity.savedPostCount }),
                ...(entity?.following && { following: entity.following }),
+               ...(entity?.lastSeen && { lastSeen: entity.lastSeen }),
+               ...(entity?.isOnline && { isOnline: entity.isOnline }),
           }
 
           return result

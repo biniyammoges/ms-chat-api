@@ -16,7 +16,7 @@ export class ChatController {
   @Get('room/retrieve')
   async retrieveRooms(@GetUser() user: UserEntity, @Query('limit') limit: number = 20, @Query('page') page: number = 1): Promise<PaginationEntity<BaseChatRoomDto>> {
     const [rooms, total] = await this.chatService.retrieveChatRooms(user.id, { limit, page })
-    return new PaginationEntity({ total, data: rooms.map(r => this.chatTransformer.entityToDto(r)) })
+    return new PaginationEntity({ total, data: rooms })
   }
 
   @Get('room/:chatRoomId/retrieve-chats')

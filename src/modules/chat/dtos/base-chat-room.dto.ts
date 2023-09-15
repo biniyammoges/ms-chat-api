@@ -6,7 +6,7 @@ export class BaseChatRoomDto extends BaseDto {
      type: ChatRoomType;
      chats?: BaseChatDto[];
      chatUsers?: BaseChatUserDto[];
-     unreadCount?: string;
+     unreadCount?: number;
 }
 
 export class BaseChatDto extends BaseDto {

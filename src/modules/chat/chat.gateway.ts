@@ -14,7 +14,7 @@ import { SocketStateService } from "../../shared/modules/socket-state/socket-sta
 import { SOCKET_STATE_TOKEN } from "../../shared/modules/socket-state/socket-state.constant";
 import { BaseChatDto } from "./dtos/base-chat-room.dto";
 
-@WebSocketGateway()
+@WebSocketGateway({ cors: { origin: '*' } })
 @UsePipes(new ValidationPipe({ whitelist: true, transform: true }))
 @UseFilters(WebsocketExceptionsFilter)
 export class ChatGateway {
@@ -22,7 +22,7 @@ export class ChatGateway {
           private chatService: ChatService,
           private redisEmitterService: RedisEmitterService,
           @Inject(SOCKET_STATE_TOKEN)
-          private socketStateService: SocketStateService
+          private socketStateService: SocketStateService,
      ) { }
 
      @SubscribeMessage(ChatSocketEvents.JoinChatRoom)
@@ -36,7 +36,7 @@ export class ChatGateway {
 
           socket.join(roomId)
           this.socketStateService.syncSocketRoom({ roomId, socketId: socket.id, userId: socket.data.user.id })
-          return { data: { roomId }, event: ChatSocketEvents.JoinedChatRoom }
+          return { data: chatRoom, event: ChatSocketEvents.JoinedChatRoom }
      }
 
      @SubscribeMessage(ChatSocketEvents.leaveChatRoom)
@@ -101,7 +101,6 @@ export class ChatGateway {
      async markMessageAsSeen(@ConnectedSocket() socket: AuthSocket, @MessageBody() data: ChatRoomIdDto): Promise<WsResponse> {
           const { seenCount, chatUsers } = await this.chatService.maskAllMessagesAsSeen({
                chatRoomId: data.chatRoomId,
-               userId: socket.data.user.id,
                readerId: socket.data.user.id
           })
 
