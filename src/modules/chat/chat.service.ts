@@ -11,8 +11,9 @@ import { JoinChatRoomDto } from './dtos/join-or-leave-chat-room.dto';
 import { UserService } from '../user/user.service'
 import { CreateStoryMessageDto } from '../story/dtos/create-story-message.dto';
 import { ChatTransformer } from './chat.transformer';
-import { BaseChatRoomDto } from './dtos/base-chat-room.dto';
+import { BaseChatDto, BaseChatRoomDto } from './dtos/base-chat-room.dto';
 import merge from 'ts-deepmerge';
+import { UserTransformer } from '../user/transformer/user.transformer';
 
 @Injectable()
 export class ChatService {
@@ -20,6 +21,7 @@ export class ChatService {
           @InjectEntityManager()
           private em: EntityManager,
           private userService: UserService,
+          private userTransformer: UserTransformer,
           private chatTransformer: ChatTransformer
      ) { }
 
@@ -147,6 +149,7 @@ export class ChatService {
                .where('c.chatRoomId = :chatRoomId', { chatRoomId })
                .leftJoinAndSelect('c.sender', 'sender')
                .leftJoinAndSelect('c.parentChat', 'parentChat')
+               .leftJoinAndSelect('parentChat.sender', 'parentSender')
                .leftJoinAndSelect('c.storyMessage', 'storyMessage')
                .leftJoinAndSelect('storyMessage.story', 'story')
                .orderBy('c.createdAt', 'ASC');
@@ -188,12 +191,14 @@ export class ChatService {
                validateChatRoom: false // tells not to check for chatroom existance
           });
 
-          const message = await this.em.save(this.em.create(ChatEntity,
+          const savedMessage = await this.em.save(this.em.create(ChatEntity,
                {
                     ...data,
                     chatRoom,
                     senderId
                }));
+
+          const message = await this.em.findOne(ChatEntity, { where: { id: savedMessage.id }, relations: { parentChat: { sender: true } } })
 
           return { message, chatUsers }
      }

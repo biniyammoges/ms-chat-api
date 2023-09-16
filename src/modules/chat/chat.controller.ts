@@ -26,6 +26,13 @@ export class ChatController {
     return new PaginationEntity<BaseChatDto>({
       total, data: chats.map(c => ({
         ...c,
+        ...(c?.parentChat && {
+          ...c?.parentChat,
+          ... (c?.parentChat?.sender &&
+          {
+            sender: this.userTransformer.entityToDto(c.parentChat.sender)
+          })
+        }),
         ...(c.sender && { sender: this.userTransformer.entityToDto(c.sender) })
       }))
     })
