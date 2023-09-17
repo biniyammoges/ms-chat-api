@@ -7,6 +7,8 @@ import { UserDto } from './dtos/user.dto';
 import { UploadAvatarDto } from './dtos/upload-avatar.dto';
 import { FileEntity } from '../file/file.entity';
 import { FollowerEntity } from '../follower/entities/follower.entity';
+import { RedisEmitterService } from 'src/shared/modules/redis-emitter/redis-emitter.service';
+import { OnlineStatusEvents } from 'src/shared';
 
 @Injectable()
 export class UserService {
@@ -14,6 +16,7 @@ export class UserService {
           @InjectRepository(UserEntity)
           public userRepo: Repository<UserEntity>,
           private userTransformer: UserTransformer,
+          private redisEmitterService: RedisEmitterService,
           @InjectEntityManager()
           private em: EntityManager
      ) { }
@@ -104,13 +107,18 @@ export class UserService {
           }
      }
 
-     async updateLastSeen(userId: string, opts: { markAsOnline: boolean } = { markAsOnline: false }) {
+     async updateLastSeen(user: UserDto, opts: { markAsOnline: boolean } = { markAsOnline: false }) {
           await this.em.update(UserEntity,
-               { id: userId },
+               { id: user.id },
                {
                     isOnline: opts.markAsOnline,
-                    lastSeen: opts.markAsOnline ? null : new Date()
+                    lastSeen: opts.markAsOnline ? null : new Date().toISOString()
                })
+
+          await this.redisEmitterService.emitToAll({
+               data: user.id,
+               event: opts.markAsOnline ? OnlineStatusEvents.ONLINE : OnlineStatusEvents.OFFLINE
+          })
      }
 
      async searchUser(kywrd: string, searcher: string) {

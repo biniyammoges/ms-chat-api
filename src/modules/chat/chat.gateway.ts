@@ -80,7 +80,7 @@ export class ChatGateway {
                throw new WsException(`Join chat room to emit ${ChatSocketEvents.Typing} event`)
           }
 
-          await this.redisEmitterService.emitToRoom({ event: ChatSocketEvents.Typing, data, roomId, socketId: socket.id, })
+          await this.redisEmitterService.emitToOne({ data: { ...data, typerId: socket?.data?.user?.id }, event: ChatSocketEvents.Typing, userId: data.recipientId, socketId: socket.id })
           return { event: ChatSocketEvents.TypingSent, data }
      }
 
@@ -92,7 +92,7 @@ export class ChatGateway {
                throw new WsException(`Join chat room to emit ${ChatSocketEvents.StoppedTyping} events`)
           }
 
-          await this.redisEmitterService.emitToRoom({ event: ChatSocketEvents.StoppedTyping, data, roomId, socketId: socket.id, })
+          await this.redisEmitterService.emitToOne({ data: { ...data, typerId: socket?.data?.user?.id }, event: ChatSocketEvents.StoppedTyping, userId: data.recipientId, socketId: socket.id })
           return { event: ChatSocketEvents.StoppedTypingSent, data }
      }
 

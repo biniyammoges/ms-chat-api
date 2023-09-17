@@ -18,6 +18,11 @@ export enum NotificationSocketEvents {
      NEW_NOTIFICATION = 'new-notification',
 }
 
+export enum OnlineStatusEvents {
+     ONLINE = 'online',
+     OFFLINE = 'offline'
+}
+
 export enum ChatSocketEvents {
      SendMessage = 'send-message',
      MessageSent = 'message-sent',

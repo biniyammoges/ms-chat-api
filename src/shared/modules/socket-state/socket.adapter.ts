@@ -48,11 +48,11 @@ export class SocketAdapter extends IoAdapter implements WebSocketAdapter {
 
           server.on(SocketEvents.Connection, async (socket: AuthSocket) => {
                this.socketStateService.add(socket.data.user.id, socket)
-               await userService.updateLastSeen(socket.data.user.id, { markAsOnline: true })
+               await userService.updateLastSeen(socket.data.user, { markAsOnline: true })
 
                socket.on(SocketEvents.Disconnect, async () => {
                     this.socketStateService.remove(socket.data.user.id, socket)
-                    await userService.updateLastSeen(socket.data.user.id)
+                    await userService.updateLastSeen(socket.data.user)
                     socket.removeAllListeners(SocketEvents.Disconnect)
                })
 

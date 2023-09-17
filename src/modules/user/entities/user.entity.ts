@@ -41,7 +41,7 @@ export class UserEntity extends AbstractEntity {
      @Column('bool', { default: false })
      isOnline: boolean
 
-     @Column('date', { nullable: true })
+     @Column('datetime', { nullable: true })
      lastSeen: Date
 
      @Column({ nullable: true })
