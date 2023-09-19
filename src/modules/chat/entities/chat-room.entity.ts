@@ -2,6 +2,7 @@ import { AbstractEntity } from "../../../shared";
 import { Column, Entity, OneToMany } from "typeorm";
 import { ChatEntity } from "./chat.entity";
 import { ChatUserEntity } from "./chat-user.entity";
+import { VirtualColumn } from "../../../decorators/virtual-column.decorator";
 
 export enum ChatRoomType {
      Private = 'private',
@@ -19,5 +20,6 @@ export class ChatRoomEntity extends AbstractEntity {
      @OneToMany(() => ChatUserEntity, ce => ce.chatRoom, { cascade: true })
      chatUsers: ChatUserEntity[]
 
+     @VirtualColumn()
      unreadCount: number
 }

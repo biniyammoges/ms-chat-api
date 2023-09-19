@@ -18,6 +18,7 @@ import { LoggerMiddleware } from './middlewares/logger.middleware';
 import { NotificationModule } from './modules/notification/notification.module';
 import { ChatModule } from './modules/chat/chat.module';
 import { StoryModule } from './modules/story/story.module';
+import { AppService } from './app.service';
 
 @Module({
   imports: [
@@ -44,7 +45,7 @@ import { StoryModule } from './modules/story/story.module';
     ChatModule,
     StoryModule],
   controllers: [AppController],
-  providers: [{ provide: APP_GUARD, useValue: JwtAuthGuard },],
+  providers: [{ provide: APP_GUARD, useValue: JwtAuthGuard }, AppService],
   exports: []
 })
 export class AppModule implements NestModule {
