@@ -24,7 +24,7 @@ export class NotificationController {
   }
 
   @Get('read-all')
-  async readAll(@Param() notificationIdDto: NotificationIdDto, @GetUser('id') reveiverId: string) {
-    return this.notificationService.readAll(notificationIdDto.id, reveiverId)
+  async readAll(@GetUser('id') reveiverId: string) {
+    return this.notificationService.readAll(reveiverId)
   }
 } 

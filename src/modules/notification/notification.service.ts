@@ -57,8 +57,8 @@ export class NotificationService {
           return { isRead: true }
      }
 
-     async readAll(notificationId: string, receiverId: string) {
-          await this.em.update(NotificationEntity, { id: notificationId, receiverId, isRead: false }, { isRead: true });
+     async readAll(receiverId: string) {
+          await this.em.update(NotificationEntity, { receiverId, isRead: false }, { isRead: true });
           return { isRead: true }
      }
 }
