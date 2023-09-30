@@ -94,6 +94,19 @@ export class PostService {
           return postDto
      }
 
+     async retrieveOnePost(id: string): Promise<PostEntity> {
+          const postQry = this.em.createQueryBuilder(PostEntity, 'p')
+               .where('p.id = :id', { id })
+               .innerJoinAndSelect("p.creator", "creator")
+               .leftJoinAndSelect("creator.avatar", 'avatar')
+               .loadRelationCountAndMap('p.commentCount', 'p.comments')
+               .loadRelationCountAndMap('p.likeCount', 'p.likes')
+               .leftJoinAndSelect('p.medias', 'medias')
+               .leftJoinAndSelect('medias.file', 'file')
+
+          return postQry.getOne()
+     }
+
      async updatePost(postId: string, data: UpdatePostDto, updaterId: string): Promise<PostEntity> {
           const post = await this.em.findOne(PostEntity, { where: { id: postId, creatorId: updaterId }, relations: ['medias'] })
           if (!post) {

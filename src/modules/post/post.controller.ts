@@ -44,6 +44,12 @@ export class PostController {
     return { data: posts.map(post => this.postTransformer.entityToDto(post)), total }
   }
 
+  @Get('post/retrieve/:id')
+  async retrieveOnePost(@Param('id') id: string): Promise<BasePostDto> {
+    const post = await this.postService.retrieveOnePost(id)
+    return this.postTransformer.entityToDto(post)
+  }
+
   @Get('post/retrieve/me')
   async retrieveMyPosts(@GetUser('id') id: string, @Query('limit') limit: number = 20, @Query('page') page: number = 1): Promise<PaginationEntity<BasePostDto>> {
     const { data: posts, total } = await this.postService.retrieveMyPosts(id, { limit, page })
