@@ -9,13 +9,13 @@ export class PostTransformer {
 
      entityToDto(entity: PostEntity, opts?: Record<string, never>) {
           const result: BasePostDto = {
-               id: entity.id,
-               creatorId: entity.creatorId,
-               ...(entity.caption && { caption: entity.caption }),
-               ...(entity.creator && { creator: this.userTransformer.entityToDto(entity.creator) }),
-               createdAt: entity.createdAt,
-               updatedAt: entity.updatedAt,
-               medias: entity.medias?.length ? entity.medias.map(media => ({
+               id: entity?.id,
+               creatorId: entity?.creatorId,
+               ...(entity?.caption && { caption: entity.caption }),
+               ...(entity?.creator && { creator: this.userTransformer.entityToDto(entity.creator) }),
+               createdAt: entity?.createdAt,
+               updatedAt: entity?.updatedAt,
+               medias: entity?.medias?.length ? entity.medias.map(media => ({
                     ...media,
                     ...(media.file && {
                          file: {
@@ -26,10 +26,10 @@ export class PostTransformer {
                          }
                     })
                })) : [],
-               likeCount: entity.likeCount || 0,
-               commentCount: entity.commentCount || 0,
-               liked: entity.liked,
-               saved: entity.saved,
+               likeCount: entity?.likeCount || 0,
+               commentCount: entity?.commentCount || 0,
+               liked: entity?.liked,
+               saved: entity?.saved,
           }
 
           return result

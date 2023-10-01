@@ -95,7 +95,7 @@ export class PostService {
      }
 
      async retrieveOnePost(id: string): Promise<PostEntity> {
-          const postQry = this.em.createQueryBuilder(PostEntity, 'p')
+          const [post] = await this.em.createQueryBuilder(PostEntity, 'p')
                .where('p.id = :id', { id })
                .innerJoinAndSelect("p.creator", "creator")
                .leftJoinAndSelect("creator.avatar", 'avatar')
@@ -103,8 +103,9 @@ export class PostService {
                .loadRelationCountAndMap('p.likeCount', 'p.likes')
                .leftJoinAndSelect('p.medias', 'medias')
                .leftJoinAndSelect('medias.file', 'file')
+               .getManyAndCount()
 
-          return postQry.getOne()
+          return post[0]
      }
 
      async updatePost(postId: string, data: UpdatePostDto, updaterId: string): Promise<PostEntity> {
@@ -470,7 +471,7 @@ export class PostService {
      }
 
      async retrieveSavedPosts(retrieverId: string) {
-          const savedPosts = await this.em.createQueryBuilder(SavedPostEntity, 'sp')
+          const [savedPosts] = await this.em.createQueryBuilder(SavedPostEntity, 'sp')
                .where('sp.userId = :retrieverId', { retrieverId })
                .leftJoinAndSelect('sp.post', 'post')
                .leftJoinAndSelect('post.medias', 'medias')
@@ -478,7 +479,8 @@ export class PostService {
                .leftJoinAndSelect('post.creator', 'creator')
                .leftJoinAndSelect('creator.avatar', 'avatar')
                .loadRelationCountAndMap('post.commentCount', 'post.comments')
-               .loadRelationCountAndMap('post.likeCount', 'post.likes').getMany()
+               .loadRelationCountAndMap('post.likeCount', 'post.likes')
+               .getManyAndCount()
 
           for (const post of savedPosts.map(sp => sp?.post)) {
                const [isLiked, isSaved] = await Promise.all([
